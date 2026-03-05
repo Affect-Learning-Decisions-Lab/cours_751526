@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Probabilité</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="probabilité_files/libs/clipboard/clipboard.min.js"></script>
+<script src="probabilité_files/libs/quarto-html/quarto.js"></script>
+<script src="probabilité_files/libs/quarto-html/popper.min.js"></script>
+<script src="probabilité_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="probabilité_files/libs/quarto-html/anchor.min.js"></script>
+<link href="probabilité_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="probabilité_files/libs/quarto-html/quarto-syntax-highlighting-29e2c20b02301cfff04dc8050bf30c7e.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="probabilité_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="probabilité_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="probabilité_files/libs/bootstrap/bootstrap-e19dc0c07aeef78048e587c3f1edba7a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#quelques-aspects-techniques-avant-de-commencer" id="toc-quelques-aspects-techniques-avant-de-commencer" class="nav-link active" data-scroll-target="#quelques-aspects-techniques-avant-de-commencer">Quelques aspects techniques avant de commencer</a></li>
+  <li><a href="#définir-lespace-des-probabilités" id="toc-définir-lespace-des-probabilités" class="nav-link" data-scroll-target="#définir-lespace-des-probabilités">Définir l’espace des probabilités</a></li>
+  <li><a href="#la-variable-aléatoire" id="toc-la-variable-aléatoire" class="nav-link" data-scroll-target="#la-variable-aléatoire">La variable aléatoire</a></li>
+  <li><a href="#deux-perspectives-sur-la-probabilité" id="toc-deux-perspectives-sur-la-probabilité" class="nav-link" data-scroll-target="#deux-perspectives-sur-la-probabilité">Deux perspectives sur la probabilité</a>
+  <ul class="collapse">
+  <li><a href="#perspective-basée-sur-la-fréquence" id="toc-perspective-basée-sur-la-fréquence" class="nav-link" data-scroll-target="#perspective-basée-sur-la-fréquence">Perspective basée sur la fréquence</a></li>
+  <li><a href="#perspective-basée-sur-la-croyance-incertaine" id="toc-perspective-basée-sur-la-croyance-incertaine" class="nav-link" data-scroll-target="#perspective-basée-sur-la-croyance-incertaine">Perspective basée sur la croyance incertaine</a></li>
+  </ul></li>
+  <li><a href="#distributions-de-probabilité" id="toc-distributions-de-probabilité" class="nav-link" data-scroll-target="#distributions-de-probabilité">Distributions de probabilité</a>
+  <ul class="collapse">
+  <li><a href="#probabilité-discrète" id="toc-probabilité-discrète" class="nav-link" data-scroll-target="#probabilité-discrète">Probabilité discrète</a>
+  <ul class="collapse">
+  <li><a href="#la-loi-de-bernoulli" id="toc-la-loi-de-bernoulli" class="nav-link" data-scroll-target="#la-loi-de-bernoulli">La loi de Bernoulli</a></li>
+  <li><a href="#la-loi-binomiale" id="toc-la-loi-binomiale" class="nav-link" data-scroll-target="#la-loi-binomiale">La loi binomiale</a></li>
+  <li><a href="#probability-mass-function" id="toc-probability-mass-function" class="nav-link" data-scroll-target="#probability-mass-function">Probability Mass Function</a></li>
+  <li><a href="#la-probabilité-cumulée" id="toc-la-probabilité-cumulée" class="nav-link" data-scroll-target="#la-probabilité-cumulée">La probabilité cumulée</a></li>
+  </ul></li>
+  <li><a href="#probabilité-continue" id="toc-probabilité-continue" class="nav-link" data-scroll-target="#probabilité-continue">Probabilité continue</a></li>
+  </ul></li>
+  <li><a href="#la-valeur-espérée-et-la-variance-dune-distribution-de-probabilité" id="toc-la-valeur-espérée-et-la-variance-dune-distribution-de-probabilité" class="nav-link" data-scroll-target="#la-valeur-espérée-et-la-variance-dune-distribution-de-probabilité">La valeur espérée et la variance d’une distribution de probabilité</a>
+  <ul class="collapse">
+  <li><a href="#la-valeur-espérée" id="toc-la-valeur-espérée" class="nav-link" data-scroll-target="#la-valeur-espérée">La valeur espérée</a></li>
+  <li><a href="#la-variance" id="toc-la-variance" class="nav-link" data-scroll-target="#la-variance">La variance</a></li>
+  <li><a href="#visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-la-normale" id="toc-visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-la-normale" class="nav-link" data-scroll-target="#visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-la-normale">Visualisation des changements de paramètres sur la forme de la distribution de la normale</a></li>
+  </ul></li>
+  <li><a href="#lintervalle-de-densité-maximale" id="toc-lintervalle-de-densité-maximale" class="nav-link" data-scroll-target="#lintervalle-de-densité-maximale">L’intervalle de densité maximale</a></li>
+  <li><a href="#la-fonction-de-répartition-cumulative" id="toc-la-fonction-de-répartition-cumulative" class="nav-link" data-scroll-target="#la-fonction-de-répartition-cumulative">La fonction de répartition cumulative</a></li>
+  <li><a href="#la-distribution-de-cauchy" id="toc-la-distribution-de-cauchy" class="nav-link" data-scroll-target="#la-distribution-de-cauchy">La distribution de Cauchy</a>
+  <ul class="collapse">
+  <li><a href="#visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-cauchy" id="toc-visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-cauchy" class="nav-link" data-scroll-target="#visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-cauchy">Visualisation des changements de paramètres sur la forme de la distribution de Cauchy</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Probabilité</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="quelques-aspects-techniques-avant-de-commencer" class="level1">
+<h1>Quelques aspects techniques avant de commencer</h1>
+<p>Il est très important de faire tourner la section ci-dessous, même si d’un point de vue pratique elle ne fait que préparer les instruments dont nous allons nous servir plus tard dans le document.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Package utilisé pour faire le graphique</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("ggplot2") # installation, à faire une seule fois</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2) <span class="co"># chargement</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'ggplot2' was built under R version 4.4.3</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Couleur pour le graphique</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>darkred <span class="ot">&lt;-</span> <span class="st">"#8B0000"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="définir-lespace-des-probabilités" class="level1">
+<h1>Définir l’espace des probabilités</h1>
+<p>Une distribution de probabilité peut être considérée comme une construction formelle qui capture l’état de croyance d’un agent face à la réalisation d’un certain événement. Plus concrètement, une distribution de probabilité attribue des valeurs numériques (typiquement entre 0 et 1) à un certain nombre d’événements différents, c’est-à-dire à différents états dans lesquels le monde pourrait être. Ces valeurs numériques peuvent être interprétées comme le poids de la croyance que l’agent attribue à chaque événement : plus le nombre attribué à un événement est élevé, plus l’agent considère cet état du monde comme probable.</p>
+<p>Nous pouvons définir l’espace des probabilités comme un ensemble <span class="math inline">\((\Omega, F, P)\)</span></p>
+<ul>
+<li><p><strong><span class="math inline">\(\Omega\)</span> – Univers</strong>: L’univers est l’espace d’échantillonnage, il contient tous les états possibles d’une expérience aléatoire. Les éléments contenus dans l’univers sont les issues (<em>outcomes</em>) et sont typiquement notés <span class="math inline">\(\omega\)</span>. Donc, <span class="math inline">\(\omega_1, \omega_2, \ldots \in \Omega\)</span>. Par exemple, si vous lancez un dé à six faces, l’univers est $= { 1, 2, 3, 4, 5, 6 } $, et la première des issues possibles est <span class="math inline">\(\omega_1 = 1\)</span>.</p></li>
+<li><p><strong><span class="math inline">\(F\)</span> – L’espace des événements</strong>: L’espace des événements contient des événements <span class="math inline">\(E\)</span>. Un événement est un sous-ensemble d’issues tirées de l’univers <span class="math inline">\(\Omega\)</span>. Quand un événement est constitué d’un seul élément, on dit que c’est un <em>événement élémentaire</em>. Par exemple, si vous lancez un dé à six faces, vous pouvez calculer la probabilité d’obtenir un nombre pair, dans ce cas l’événement est <span class="math inline">\(E = \{2,4,6\}\)</span>. Pour calculer la probabilité d’obtenir un nombre spécifique comme 6, dans ce cas l’événement élémentaire est <span class="math inline">\(E = \{6\}\)</span>.</p></li>
+<li><p><strong><span class="math inline">\(P\)</span> – Probabilité</strong>: La probabilité est une fonction qui assigne une valeur numérique à chaque événement : <span class="math inline">\(P(E) = x\)</span>.</p></li>
+</ul>
+<p>La probabilité suit les trois axiomes suivants (Kolmogorov, 1956) :</p>
+<ul>
+<li><p><span class="math inline">\(0 \leq P(E) \leq 1\)</span><br>
+La probabilité est une valeur numérique non négative qui varie entre 0 et 1</p></li>
+<li><p><span class="math inline">\(P(\Omega) = 1\)</span><br>
+La somme de la probabilité de toutes les issues possibles dans l’univers est égale à 1</p></li>
+<li><p><span class="math inline">\(P(E_1 \cup E_2 \cup E_3 \cup \ldots) = P(E_1) + P(E_2) + P(E_3) + \ldots\)</span><br>
+Lorsque <span class="math inline">\(E_1, E_2, E_3, \ldots\)</span> sont mutuellement exclusifs, la probabilité que l’un ou l’autre se produise est égale à la somme de leurs probabilités individuelles</p></li>
+</ul>
+<p>La probabilité peut donc être conçue comme le rapport du nombre de cas favorables à la réalisation d’un événement au nombre total de cas possibles. Dans l’exemple du dé, la probabilité d’obtenir un nombre pair correspond à <span class="math inline">\(3/6 = 0.5\)</span> tandis que la probabilité d’obtenir le nombre 6 correspond à <span class="math inline">\(1/6 = 0.1667\)</span>. Chaque événement <span class="math inline">\(E\)</span> est associé à une probabilité <span class="math inline">\(P(E)\)</span> qui varie entre 0 et 1.</p>
+</section>
+<section id="la-variable-aléatoire" class="level1">
+<h1>La variable aléatoire</h1>
+<p>La variable aléatoire est un concept fondamental en statistique qui fait le lien entre la probabilité théorique et les données du monde réel. Dans un context de psychologie expériementale nous mesurons des données comme des mouvements oculaires ou des choix. Typiquement, on considère que ces données (notée comme <span class="math inline">\(x\)</span>) sont généres par une variable aléatoire (notée comme <span class="math inline">\(X\)</span>). La valeur de la variable aléatoire n’est pas directement observable ; nous n’avons accès qu’aux réalisations de cette variable à travers les données mesurées.</p>
+<p>Formellement, la variable aléatoire <span class="math inline">\(X\)</span> est une fonction de l’espace d’échantillonnage <span class="math inline">\(\Omega\)</span> des issues possibles <span class="math inline">\(\omega\)</span> vers le système des nombres réels <span class="math inline">\(\mathbb{R}\)</span> :</p>
+<p><span class="math display">\[X : \Omega \to \mathbb{R}\]</span></p>
+<p>La variable aléatoire associe à chaque issue <span class="math inline">\(\omega\)</span> un nombre : <span class="math inline">\(X(\omega) = x, \omega \in \Omega\)</span>. Cette valuer numerique peut être considéré comme un nombre qui capture un aspect pertinent de ce qui est en fait une réalité beaucoup plus complexe.</p>
+<p>Ses valeurs sont déterminées par le résultat d’une expérience. Par “aléatoire”, nous ne voulons pas dire totalement imprévisible. Un processus aléatoire est simplement un processus dont le résultat ne peut pas être parfaitement connu à l’avance (il peut néanmoins être assez prévisible). Ainsi, pour un lancer de dé, nous pouvons créer une variable aléatoire <span class="math inline">\(X\)</span> qui prend une valeur de 1 si le dé tombe sur 1, de 2 s’il tombe sur 2, et ansi de suite. Comme le lancer de dé ne peut produire qu’un nombre défini d’événements (dans ce cas six), <span class="math inline">\(X\)</span> est une variable aléatoire discrète.</p>
+<p>En termes de notation, on utilise typiquement les conventions suivantes :</p>
+<ul>
+<li>la variable aléatoire est notée avec une majuscule <span class="math inline">\(X\)</span> et la valeur numérique avec une minuscule <span class="math inline">\(x\)</span>,</li>
+<li>la probabilité que la variable aléatoire ait une certaine valeur numérique est notée <span class="math inline">\(P(X = x)\)</span> – cela correspond à la version abrégée de la version plus précise <span class="math inline">\(P(\{\omega \in \Omega : X(\omega) = x\})\)</span>,</li>
+<li>la probabilité que la variable aléatoire prenne un valeur numérique plus grande ou égale à un certain seuil <span class="math inline">\(x\)</span> est notée <span class="math inline">\(P(X≤x)\)</span>.</li>
+</ul>
+</section>
+<section id="deux-perspectives-sur-la-probabilité" class="level1">
+<h1>Deux perspectives sur la probabilité</h1>
+<p>Il y deux manière différentes de réfléchir à la probabilité : une perspective basée sur la fréquence et une perspective basée sur la croyance incertaine.</p>
+<section id="perspective-basée-sur-la-fréquence" class="level2">
+<h2 class="anchored" data-anchor-id="perspective-basée-sur-la-fréquence">Perspective basée sur la fréquence</h2>
+<p>La probabilité est définie en fonction de la fréquence à laquelle un événement pourrait se produire lors d’observations répétées. Une telle conception de la probabilité est facile à imaginer dans les cas où quelque chose peut, au moins en principe, se produire de manière répétée. Par exemple, imaginons que nous voulons déterminer quelle est la probabilité d’obtenir la face “6” dans un lancer de dé. Nous allons échantillonner le processus <span class="math inline">\(N\)</span> fois, compter le nombre de fois où le “6” est apparu, et estimer la probabilité d’obtenir le “6” sur la base de la fréquence relative.</p>
+<p>L’idée d’une approche basée sur la fréquence est de lancer un dé un nombre important de fois et mesurer le résultat de ce processus. Nous allons faire cela à travers le langage de programmation <code>R</code>, en s’appuyant sur la function <code>sample</code> qui génère des séquences de nombres pseudo-aléatoires. Pour chaque essai, nous allons calculer la fréquence rélative d’apparition du “6” <code>prop_six</code> en calculant le rapport entre le nombre de fois où le “6” est apparu et le nombre total d’essais jusque-là.</p>
+<p>Dans le code ci-dessous, vous pouvez essayer de changer le nombre d’essais <code>nsamples</code> pour voir l’effet que cela a sur l’estimation de la probabilité basée sur la fréquence.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>nsamples <span class="ot">&lt;-</span> <span class="dv">100</span> <span class="co"># nombre de lancers</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>lancer <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>,<span class="st">"5"</span>, <span class="st">"6"</span>), nsamples, <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="co"># générateur de nombres pseudo-aléatoires</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>prop_six <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(lancer <span class="sc">==</span> <span class="st">"6"</span>) <span class="sc">/</span> <span class="fu">seq_along</span>(lancer)  <span class="co"># calcul de la proportion de fois où le 6 apparaît</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># graphique</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span>nsamples, <span class="at">y =</span> prop_six), <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> darkred, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> darkred, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.1667</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> nsamples<span class="sc">/</span><span class="dv">2</span>, <span class="at">y =</span> <span class="fl">0.8</span>, <span class="at">label =</span> <span class="fu">paste0</span>(<span class="st">"Séquence = "</span>, <span class="fu">paste</span>(lancer[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">collapse =</span> <span class="st">""</span>), <span class="st">"..."</span>), <span class="at">hjust =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> nsamples<span class="sc">/</span><span class="dv">2</span>, <span class="at">y =</span> <span class="fl">0.7</span>, <span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"Proportion de 6 au dernier essais = %.3f"</span>, prop_six[nsamples]), <span class="at">hjust =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,nsamples) <span class="sc">+</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Proportion du Nombre 6"</span>, <span class="at">x =</span> <span class="st">"Nombre d'essais"</span>, <span class="at">y =</span> <span class="st">"Proportion du Nombre 6"</span>) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>On peut voir sur la figure que, même après un nombre important d’essais, la proportion de “6” est proche de 0.167 mais pas parfaitement égale à 0.167. Cet écart nous rappelle que même avec beaucoup d’essais, un échantillonnage aléatoire est nécessairement fini (et non pas infini), et qu’il n’y a aucune garantie que la fréquence relative d’un événement corresponde à la véritable probabilité sous-jacente de l’événement. C’est pourquoi nous disons que nous <em>approchons</em> la probabilité par la fréquence relative à long terme.</p>
+</section>
+<section id="perspective-basée-sur-la-croyance-incertaine" class="level2">
+<h2 class="anchored" data-anchor-id="perspective-basée-sur-la-croyance-incertaine">Perspective basée sur la croyance incertaine</h2>
+<p>Dans la perspective basée sur la croyance incertaine, l’idée est de quantifier l’incertitude concernant notre croyance en un certain état du monde, étant donné certaines données. Si nous reprenons l’exemple du dé, nous pouvons imaginer que nous avons la croyance que le dé n’est pas biaisé, et que la probabilité d’obtenir le “6” est donc de 1/6 = 0.167. La probabilité d’obtenir le “6” peut être notée avec un paramètre labelisé avec la lettre grecque theta : <span class="math inline">\(\theta =  0.167\)</span> . Le degré de croyance en ce paramètre est noté <span class="math inline">\(p(\theta)\)</span>. Nous pouvons imaginer un scénario dans lequel nous croyons fortement que le dé n’est pas biaisé et que la probabilité d’apparition du “6” est 1/6 – par exemple <span class="math inline">\(p(\theta) = 0.99\)</span>, ou un autre scénario dans lequel nous croyons que le dé pourrait être biasé et donc nous avons plus d’incertitude – par exemple <span class="math inline">\(p(\theta) = 0.5\)</span>. Dans cette perspective, nous avons donc deux éléments : “la probabilité” et “le degré de croyance”.</p>
+<p>Ce qui distingue donc cette perspective est le fait de pouvoir exprimer le dégré d’incertitude par rapport à un certain paramètre (<span class="math inline">\(\theta\)</span>). Cela peut être défini à travers des fonctions mathématiques qui définissent des courbes qui quantifient le niveau d’incertitude par rapport à un certain paramètre. Ces fonctions mathématiques définissent des distributions de <span class="math inline">\(p(\theta)\)</span>, ou la <em>distribution a priori</em> de <span class="math inline">\(\theta\)</span>. Dans notre exemple, cette distribution quantifie notre degré de croyance par rapport à la probabilité d’obtenir un “6” dans la lancer de dé, avant d’observer les données.</p>
+<p>Concrètement, dans cette approche, le paramètre <span class="math inline">\(\theta\)</span> est aussi traité comme une variable aléatoire avec sa propre distribution de probabilité <span class="math inline">\(p(\theta)\)</span>.</p>
+</section>
+</section>
+<section id="distributions-de-probabilité" class="level1">
+<h1>Distributions de probabilité</h1>
+<p>Une distribution de probabilité est simplement une liste de toutes les issues possibles et de leurs probabilités correspondantes. Dans notre exemple du dé, cela est relativement simple : comme il y n’y a que 6 issues possibles (1, 2, 3, 4, 5 ou 6) qui sont équiprobables (1/6). Nous pouvons déjà illustrer cette distribution de probabilité avec le graphique suivant :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer le dataset avec la liste de toutes les issues possibles et leurs probabilités correspondantes </span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>die_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">probability =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>, <span class="dv">6</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer le graphique de masse de probabilité avec l'échelle de l'axe des y ajustée</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(die_data, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(outcome), <span class="at">y =</span> probability)) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> darkred) <span class="sc">+</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fonction de masse de probabilité "</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Résultat du lancer de dé"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Probabilité"</span>) <span class="sc">+</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Pour d’autre types de résultats possibles, comme dans la cas de variables aléatoires continues, les choses peuvent se compliquer un peu plus. Pour cela nous allons voir d’abord les distributions de probabilité discrètes et ensuite celles continues.</p>
+<section id="probabilité-discrète" class="level2">
+<h2 class="anchored" data-anchor-id="probabilité-discrète">Probabilité discrète</h2>
+<p>Quand l’univers des possibilités est constitué d’issues discrètes, alors nous pouvons faire référence à la probabilité de chacune des issues possible de manière distincte comme dans notre exemple du dé.</p>
+<p>L’exemple du dé est facile à suivre, mais clairement dans la recherche on s’intéresse à des univers de possibilités très différents. Par contre, dans la recherche il y a un grand nombre de cas où on s’intéresse à des possibilités discrètes, comme par exemple la survie à 5 ans après un certain type de traitement médical, ou encore la rechute après un certain type de traitement psychothérapeutique.</p>
+<section id="la-loi-de-bernoulli" class="level3">
+<h3 class="anchored" data-anchor-id="la-loi-de-bernoulli">La loi de Bernoulli</h3>
+<p>Prenons donc ce dernier exemple : imaginons une clinique qui propose un nouveau traitement pour des personnes ayant des troubles liés à l’usage de substances. Pour mesurer l’efficacité de ce traitement, on mesure si la personne a fait une rechute dans les 6 mois après le traitement. Nous avons donc une variable aléatoire qui code les issues contenues dans l’univers qui n’admet que <em>deux issues possibles</em>, souvent codées 1 (succès) ou 0 (échec). Le but de la recherche est d’estimer la probabilité de rechute, que nous allons appeler <span class="math inline">\(\theta\)</span>. Nous allons coder les deux issues possibles 1 (rechute) et 0 (pas de rechute).</p>
+<p>Dans le cas où nous avons une seule personne (<span class="math inline">\(n = 1\)</span>) qui a suivi le traitement dans cette clinique et nous essayons de prédire la probabilité de rechute pour cette personne, notre variable aléatoire va suivre la <em>loi de Bernoulli</em> :</p>
+<p><span class="math display">\[X \sim \textit{Be}(\theta) \]</span></p>
+<p>où <span class="math inline">\(P(X = 1) = \theta\)</span><br>
+et <span class="math inline">\(P(X = 0) = 1 - \theta\)</span></p>
+</section>
+<section id="la-loi-binomiale" class="level3">
+<h3 class="anchored" data-anchor-id="la-loi-binomiale">La loi binomiale</h3>
+<p>Hors, si nous devons faire cette prédiction pour plus d’une personne (disons par exemple que 10 personnes ont suivi le traitment dans cette clinique), pour chacune de ces personnes nous allons coder 1 (s’il y a eu une rechute) ou 0 (s’il n’y a pas eu de rechute). Nous avons donc 10 observations indépendantes (<span class="math inline">\(N= 10\)</span>). Nous pouvons compter le nombre de rechutes en faisant la somme du nombre de personnes parmi les 10 qui ont eu une rechute. Ici, on est dans le cas d’une variable aléatoire qui somme <span class="math inline">\(N\)</span> expériences de Bernoulli de paramètre <span class="math inline">\(\theta\)</span>. Dans ce cas, notre variable aléatoire suit la distribution de la <em>loi binomiale</em> :</p>
+<p><span class="math display">\[ X \sim \text{Binomial}(N, \theta) \]</span></p>
+<p>Pour mieux comprendre cette distribution, nous imaginons un exemple dans lequel nous avons 20 cliniques différentes qui ont chacune traité 10 personnes avec la même thérapie. Nous allons simuler ce scénario avec <code>R</code>, en utilisant la fonction <code>rbinom</code> pour créer les données simulées. Dans cette fonction, <code>n</code> se réfère au nombre d’échantillons (ou nombre d’observations). Dans notre cas, le nombre d’échantillons correspond au nombre de cliniques. <code>size</code> se réfère à la taille de l’échantillon, donc au nombre de personne par clinique qui ont suivi le traitement. <code>prob</code> se réfère à la probabilité qu’il y ait une rechute, c’est-à-dire notre paramètre <span class="math inline">\(\theta\)</span>.</p>
+<p>Voici la commande <code>R</code> qui calcule combien de personnes ayant suivi le traitment ont eu une rechute, si la probabilité est de 0.5 :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbinom</span>(<span class="at">n =</span> <span class="dv">20</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 6 6 3 3 2 5 3 5 5 2 4 8 5 4 3 5 4 7 6 4</code></pre>
+</div>
+</div>
+<p>Chaque valeur indique le nombre de personnes (sur 10) qui ont eu une rechute dans chacune des 20 cliniques sous une probabilité de rechute de 0.5. Autrement dit, c’est le nombre de rechutes pour chacune de 20 observations simulées générées par une variable aléatoire discrète <span class="math inline">\(X\)</span> avec une distribution de probabilité <span class="math inline">\(p(x|\theta)\)</span> appelée distribution binomiale.</p>
+</section>
+<section id="probability-mass-function" class="level3">
+<h3 class="anchored" data-anchor-id="probability-mass-function">Probability Mass Function</h3>
+<p>Pour une variable aléatoire discrète, cette distribution s’appelle fonction de masse de probabilité ou <strong>Probability Mass Function</strong> (<em>PMF</em>).</p>
+<p>Comme nous l’avons vu dans l’exemple du dé, cette fonction définit la probabilité de chacune des issues possibles. Dans le cas de notre traitement il y a 10 patients, donc les possibilités sont au nombre de 11 (0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ou 10 personnes qui ont une rechute).</p>
+<p>Nous pouvons plus concrètement créer le graphique de cette fonction de probabilité de masse comme suit. Vous pouvez essayer de changer la valeur de <code>theta</code> pour voir les effets que cela a sur la distribution :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">y =</span> <span class="fu">dbinom</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> theta))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> darkred) <span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Issues possibles"</span>, <span class="at">y =</span> <span class="st">"Probabilité"</span>) <span class="sc">+</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="fu">bquote</span>(theta <span class="sc">==</span> <span class="fu">bold</span>(.(theta))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>La formule de la loi binomiale qui calcule les probabilités de rechute pour chaque issue possible est formalisée comme suit :</p>
+<p><span class="math display">\[ P(X = k \mid n, \theta) = \binom{n}{k} \theta^k (1 - \theta)^{n - k} \]</span></p>
+<ul>
+<li>$ = $ est le coefficient binomial. Il se lit <span class="math inline">\(k\)</span> parmi <span class="math inline">\(n\)</span> et calcule le nombre de façons d’obtenir <span class="math inline">\(k\)</span>. Avec <code>R</code> nous pouvons le calculer facilement avec la function <code>choose(n,k)</code></li>
+<li>$ $ est la probabilité de succès lors d’un essai</li>
+<li>$ n $ est le nombre total d’essais</li>
+<li>$ k $ est le nombre de succès obtenus</li>
+</ul>
+<p>La loi binomiale permet de calculer la probabilité que la variable aléatoire prenne une certaine valeur. Cette information est déjà présente dans la figure illustrant la distribution des probabilités ci-dessus, mais la formule permet d’obtenir les valeurs exactes sans devoir les lire sur le graphique. Par exemple, nous pouvons calculer la probabilité que 10 personnes sur 10 aient une rechute à 6 mois dans un traitement pour lequel <span class="math inline">\(\theta = 0.5\)</span>.</p>
+<p>Pour ce faire, nous pouvons faire appel à la fonction R <code>dbinom</code> de la manière suivante :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dbinom</span>(<span class="at">x =</span> <span class="dv">10</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0009765625</code></pre>
+</div>
+</div>
+<p>Nous pouvons aussi utiliser la fonction <code>dbinom</code> pour calculer cette probabilité pour des traitements qui ont des paramètres différents. Par example, lorsque <span class="math inline">\(\theta\)</span> est égal à 0.3 ou 0.7, on peut calculer la probabilité que 10 personnes sur 10 aient une rechute dans les 6 mois en remplaçant 0.5 dans l’expression ci-dessus par chacune de ces probabilités.</p>
+<p>On peut simplement le faire en fournissant un vecteur de probabilités à la fonction <code>dbinom</code> comme suit :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dbinom</span>(<span class="at">x =</span> <span class="dv">10</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> <span class="fu">c</span>(<span class="fl">0.3</span>, <span class="fl">0.7</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0000059049 0.0282475249</code></pre>
+</div>
+</div>
+<p>Il est important de retenir que le calcul de la probabilité de la réalisation d’une certaine issue est possible uniquement dans le cas d’une variable aléatoire discrète (et non pas pour les variables continues comme nous le verrons dans la section suivante).</p>
+</section>
+<section id="la-probabilité-cumulée" class="level3">
+<h3 class="anchored" data-anchor-id="la-probabilité-cumulée">La probabilité cumulée</h3>
+<p>Une autre chose très utile que nous pouvons faire avec la distribution binomiale est le calcul de la probabilité cumulative d’obtenir au moins <span class="math inline">\(k\)</span> succès. Pour rendre cela plus concret, nous pouvons imaginer l’exemple d’un traitement assisté de fertilité. Ces traitements ont des coût économiques et psychologiques élevés, avec des probabilités de succès relativement basses, disons par exemple <span class="math inline">\(\\theta = 0.2\)</span>. Comme le taux de réussite pour un cycle de traitement est relativement bas, ces traitements sont proposés par plusieurs cycles, par exemple <span class="math inline">\(n = 4\)</span>. Cela est basé sur le principe que la probabilité cumulative d’obtenir au moins un succès augmente avec la répétition du traitement.</p>
+<p>Concrètement, la probabilité cumulative est la somme de la probabilité de chaque issue, jusqu’à un certain seuil d’intérêt. Dans notre exemple, nous voulons sommer <span class="math inline">\(P(X = 1) + P(X = 2) + P(X = 3) + P(X = 4)\)</span> :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dbinom</span>(<span class="dv">1</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">prob =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dbinom</span>(<span class="dv">2</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">prob =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dbinom</span>(<span class="dv">3</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">prob =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dbinom</span>(<span class="dv">4</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">prob =</span> <span class="fl">0.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.5904</code></pre>
+</div>
+</div>
+<p>Cela est formalisé par la formule suivante :</p>
+<p><span class="math display">\[ \sum_{k=0}^{n} \binom{n}{k} \theta^k (1-\theta)^{n-k} \]</span></p>
+<p>dans notre exemple, <span class="math inline">\(k=1\)</span> et <span class="math inline">\(n = 4\)</span>.</p>
+<p>Avec <code>R</code> nous pouvons utiliser la fonction <code>pbinom</code> qui calcule la probabilité d’avoir un nombre de succès supérieur (<code>lower.tail = FALSE</code>) ou inférieur (<code>lower.tails = TRUE</code>) à une certaine valeur seuil. Dans notre exemple, nous voulons calculer la probabilité d’avoir au moins un succès parmi les 4 cycles de traitement.</p>
+<p>Nous l’utilisons donc comme suit :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pbinom</span>(<span class="dv">0</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">prob =</span> <span class="fl">0.2</span>, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.5904</code></pre>
+</div>
+</div>
+<p>Concrètement, nous faisons la somme des probabilités de toutes les issues différentes de 0. Nous pouvons le visualiser comme la somme des barres rouges dans le graphique ci-dessous :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">y =</span> <span class="fu">dbinom</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">prob =</span> theta))</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>colors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="fu">rep</span>(darkred, <span class="dv">4</span>))</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> colors) <span class="sc">+</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Issues possibles"</span>, <span class="at">y =</span> <span class="st">"Probabilité"</span>) <span class="sc">+</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="fu">bquote</span>(theta <span class="sc">==</span> <span class="fu">bold</span>(.(theta))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>La fonction de répartition cumulative ou <strong>cumulative distribution function</strong> (<em>CDF</em>) peut être tracée en calculant les probabilités cumulées pour toute valeur <span class="math inline">\(k\)</span> ou inférieure à <span class="math inline">\(k\)</span>, où <span class="math inline">\(k\)</span> varie de 0 à 10 dans notre exemple. La CDF est illustrée ci-dessous :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">4</span> <span class="co"># Nombre d'essais</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fl">0.2</span> <span class="co"># Probabilité de succès</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer un data frame avec les probabilités cumulées</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>k_values <span class="ot">&lt;-</span> <span class="dv">0</span><span class="sc">:</span>n</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>cdf_values <span class="ot">&lt;-</span> <span class="fu">pbinom</span>(k_values, <span class="at">size =</span> n, <span class="at">prob =</span> theta)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k =</span> k_values, <span class="at">cdf =</span> cdf_values)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Tracer avec ggplot2</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> k, <span class="at">y =</span> cdf)) <span class="sc">+</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span>  <span class="co"># Barres noires</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fonction de répartition cumulative"</span>,</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Nombre de succès possibles k"</span>,</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Probabilité de k succès ou moins"</span>) <span class="sc">+</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Dans notre exemple de traitement assisté de fertilité, cette représentation ne nous donne pas d’informations très utiles car chaque instance inclut <span class="math inline">\(k = 0\)</span>.</p>
+<p>Ce type de représentation graphique peut par contre être intéressante pour l’exemple précédant dans lequel l’on prédisait la probabilité de rechute à 6 mois. La CDF pour l’exemple des rechutes à 6 mois est représentée ci-dessous. Dans ce graphique, nous pouvons voir la probabilité que <span class="math inline">\(k\)</span> personnes ou moins aient une rechute à 6 mois. Vous pouvez changer le paramètre <span class="math inline">\(\theta\)</span> et observer les effets que cela a sur la fonction de répartition cumulative.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10</span> <span class="co"># Nombre d'essais</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="co"># Probabilité de rechute du traitement</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer un data frame avec les probabilités cumulées</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>k_values <span class="ot">&lt;-</span> <span class="dv">0</span><span class="sc">:</span>n</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>cdf_values <span class="ot">&lt;-</span> <span class="fu">pbinom</span>(k_values, <span class="at">size =</span> n, <span class="at">prob =</span> theta)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k =</span> k_values, <span class="at">cdf =</span> cdf_values)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Tracer avec ggplot2</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> k, <span class="at">y =</span> cdf)) <span class="sc">+</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> darkred, <span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span>  <span class="co"># Barres noires</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fonction de répartition cumulative"</span>,</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Nombre de personne k"</span>,</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Probabilité que k personnes ou moins aient une rechute à 6 mois"</span>) <span class="sc">+</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Vous pouvez voir que, plus le paramètre <span class="math inline">\(\theta\)</span> diminue, plus la probabilité que moins de 0, 1 ou 2 personnes aient une rechute à 6 mois augmente. En d’autres mots, plus la probabilité de rechute diminue, plus la probabilité que peu de personnes aient une rechute augmente.</p>
+</section>
+</section>
+<section id="probabilité-continue" class="level2">
+<h2 class="anchored" data-anchor-id="probabilité-continue">Probabilité continue</h2>
+<p>Une variable aléatoire est dite continue lorsqu’elle peut prendre toutes les valeurs dans un support donné. Un exemple d’une variable aléatoire continue est la mesure de la taille en cm, ou encore la mesure du temps pris pour compléter une tâche en secondes ou millisecondes.</p>
+<p>Si vous réfléchissez attentivement à un espace de résultats dans le cadre d’une variable aléatoire continue, vous pouvez réaliser rapidement qu’il devient problématique de parler de la probabilité d’une valeur spécifique sur une échelle continue. Par exemple, la probabilité qu’une personne choisie au hasard ait une taille en cm exactement égale à 168.854 est essentiellement nulle. De la même manière, la probabilité qu’une personne mette exactement 20 min 37 s et 454 ms pour accomplir une tâche expérimentale est essentiellement nulle. De manière générale, cela est vrai pour toute valeur exacte à laquelle vous pouvez penser.</p>
+<p>C’est pour cela que quand on parle de distributions continues, on utilise le concept de <em>densité</em>. Concrètement, dans le cas d’une distribution continue on ne s’intéresse pas au calcul de la probabilité d’une valeur précise de la variable aléatoire, mais on s’intéresse plutôt à la probabilité que la variable aléatoire ait une valeur contenue dans un certain intervalle <span class="math inline">\([a,b]\)</span>. Par exemple, on peut calculer la probabilité que la taille d’une personne choisie au hasard soit comprise entre 160 et 170 cm, ou encore la probabilité qu’une personne mette entre 20 et 25 minutes pour accomplir une tâche expérimentale. Ce calcul se fait à l’aide d’une fonction de densité, qui correspond à l’aire sous la courbe dans la distribution des probabilités de la variable continue.</p>
+<p>Pour concrétiser cela, nous pouvons prendre un exemple d’une distribution continue très familière : la distribution normale. Cette distribution a deux <em>paramètres</em> :</p>
+<ul>
+<li><span class="math inline">\(\mu\)</span> (mu) : la moyenne de la distribution</li>
+<li><span class="math inline">\(\sigma\)</span> (sigma) : l’écart-type de la distribution</li>
+</ul>
+<p>La valeur de <span class="math inline">\(\mu\)</span> détermine où se situe le centre de la courbe en cloche sur l’axe des abscisses ; on l’appelle donc un <strong>paramètre de position</strong>.</p>
+<p>La valeur de <span class="math inline">\(\sigma\)</span> détermine la largeur de la cloche ; on l’appelle donc un <strong>paramètre d’échelle</strong>.</p>
+<p>Dans le chapitre <em>motivations</em>, nous avons vu un modèle (la loi normale) avec deux paramètres qui agissent comme des <strong>boutons de réglage</strong> nous permettant de modifier la position et l’échelle de la distribution de sorte à ce que la distribution s’adapte le mieux aux données observées. Dans le chapitre <em>motivations</em>, nous avons vu le modèle GLM avec les paramètres beta 1, beta 0, et la variance des résidus. Le principe est le même ici ; la formule mathématique de notre modèle, c’est-à-dire la densité de probabilité normale, est donnée par :</p>
+<p><span class="math display">\[
+p(x) = \frac{1}{\sigma \sqrt{2\pi}} \exp \left( -\frac{(x - \mu)^2}{2\sigma^2} \right).
+\]</span></p>
+<p>où :<br>
+- $ $ représente une constante de normalisation - $ ( - )$ représente le “kernel” de la distribution normale</p>
+<p>Dans le cas de notre exemple de la taille en cm, une distribution de densité de probabilité normale peut être illustrée comme suit :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Paramètres de la distribution</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">160</span> <span class="co"># Moyenne</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="dv">8</span> <span class="co"># Écart-type</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Simuler des données pour l'illustration</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>dx <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">130</span>, <span class="dv">200</span>, <span class="at">by =</span> dx)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>p_vals <span class="ot">&lt;-</span> <span class="fu">dnorm</span>(x_vals, <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Mettre les données dans une database</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x_vals, <span class="at">p =</span> p_vals)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Faire le graphique</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x, p)) <span class="sc">+</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> darkred, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span>  <span class="co"># Courbe de densité</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Densité de probabilité normale"</span>,</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"x"</span>,</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"densité"</span>) <span class="sc">+</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Il est important de bien faire attention au fait que, dans ce graphique, ce qui est représenté sur l’axe <em>y</em> correspond à la <strong>densité</strong> de probabilité, et non à la probabilité elle-même. Dans ce type de graphique, la probabilité se lit comme l’aire sous la courbe. C’est donc l’ensemble de l’aire sous la courbe qui est égal à 1.</p>
+<p>Une fois que nous avons la loi de distribution de la variable aléatoire continue, <span class="math inline">\(f(x)\)</span>, nous pouvons calculer la probabilité dans un intervalle d’intérêt de la variable aléatoire à l’aide de la formule suivante :</p>
+<p><span class="math display">\[
+P(X \in [a,b]) = \int_{a}^{b} dx \,f(x)
+\]</span></p>
+<p>où :<br>
+- $ P(X ) $ représente la probabilité que la variable aléatoire $ X $ prenne une valeur dans l’intervalle $ [a,b] $.<br>
+- $ _{a}^{b} f(x) ,dx $ est l’intégrale de la fonction de densité <span class="math inline">\(f(x)\)</span> entre <span class="math inline">\(a\)</span> et <span class="math inline">\(b\)</span>, ce qui correspond à l’aire sous la courbe de <span class="math inline">\(f(x)\)</span> sur cet intervalle.<br>
+- <span class="math inline">\(f(x)\)</span> est la fonction de densité de probabilité (PDF) associée à <span class="math inline">\(X\)</span> qui décrit comment les valeurs de <span class="math inline">\(X\)</span> sont distribuées.<br>
+- <span class="math inline">\(a\)</span> et <span class="math inline">\(b\)</span> sont les bornes de l’intervalle considéré.</p>
+<p>Nous pouvons le représenter visuellement comme suit :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Paramètres</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">160</span> <span class="co"># Moyenne</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="dv">8</span> <span class="co"># Écart-type</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Générer des données pour la distribution normale</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>dx <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">130</span>, <span class="dv">200</span>, <span class="at">by =</span> dx)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>p_vals <span class="ot">&lt;-</span> <span class="fu">dnorm</span>(x_vals, <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer un data frame</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x_vals, <span class="at">p =</span> p_vals)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Définir la région à intégrer entre 150 et 170</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>df_shaded <span class="ot">&lt;-</span> <span class="fu">subset</span>(df, x <span class="sc">&gt;=</span> <span class="dv">150</span> <span class="sc">&amp;</span> x <span class="sc">&lt;=</span> <span class="dv">170</span>)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Tracer le graphique</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x, p)) <span class="sc">+</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> darkred, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span>  <span class="co"># Courbe de densité</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">data =</span> df_shaded, <span class="fu">aes</span>(<span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> p), <span class="at">fill =</span> darkred, <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span>  <span class="co"># Aire sous la courbe</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Densité de probabilité normale"</span>,</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"x"</span>,</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"densité"</span>) <span class="sc">+</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="la-valeur-espérée-et-la-variance-dune-distribution-de-probabilité" class="level1">
+<h1>La valeur espérée et la variance d’une distribution de probabilité</h1>
+<section id="la-valeur-espérée" class="level2">
+<h2 class="anchored" data-anchor-id="la-valeur-espérée">La valeur espérée</h2>
+<p>Pour décrire la tendance centrale d’une distribution de probabilité, on utilise le concept de valeur espérée (<em>expected value</em>). La valeur espérée est la valeur la plus probable de notre variable aléatoire. On peut la comprendre comme une moyenne pondérée. Typiquement, on utilise la moyenne pour décrire un échantillon de données recoltées. Dans la distribution de probabilité, la valeur espérée ne correspond pas à la moyenne d’un échantillon, mais à la moyenne sur le long terme. Pour cela, on fait une pondération des issues possibles de la variable aléatoire avec la probabilité de chacune de ces issues.</p>
+<p>Pour illustrer ce concept, nous allons faire appel encore une fois à l’exemple du lancer de dé. Nous somme dans le cas d’une variable aléatoire discrète dans laquelle il y a 6 issues possibles (<span class="math inline">\(1, 2, 3, 4, 5, 6\)</span>) qui sont toutes equiprobables (<span class="math inline">\(1/6\)</span>). Dans ce cas, la valeur espérée se calcule selon :</p>
+<p><span class="math display">\[
+E[X] = \sum_{i}  p(x_i) \cdot x_i
+\]</span></p>
+<p>Dans notre exemple, cela correspond à :</p>
+<p><span class="math display">\[
+1/6 \cdot 1 + 1/6 \cdot 2 + 1/6 \cdot 3 + 1/6 \cdot 4 + 1/6 \cdot 5 + 1/6 \cdot 6 = 3.5
+\]</span></p>
+<p>Dans le cas d’une distribution d’une variable aléatoire continue, comme dans l’exemple de la distribution de probabilité des tailles en cm, le principe est exactement le même. La difference réside dans le fait que, vu qu’il s’agit d’une distribution continue et que les intervalles sont par conséquent infinitésimales, nous devons faire appel à une intégrale et non à une somme. L’opération reste néanmoins exactement la même :</p>
+<p><span class="math display">\[
+E[x] = \int dx  \, p(x) \cdot x
+\]</span></p>
+<p>Dans notre exemple, les tailles sont distribuées selon une loi normale. Dans ce cas, le calcul de l’intégrale permettant de déterminer la valeur espérée correspond à la moyenne (<span class="math inline">\(\mu\)</span>), c’est-à-dire 160 cm.</p>
+</section>
+<section id="la-variance" class="level2">
+<h2 class="anchored" data-anchor-id="la-variance">La variance</h2>
+<p>La variance d’une distribution de probabilité, comme celle de la loi normale, se calcule selon le même principe général que dans les autres modèles vus précédemment : il s’agit de mesurer l’écart moyen (au carré) entre les valeurs possibles de la variable et la valeur centrale du modèle, c’est-à-dire sa valeur espérée <span class="math inline">\((x-E[x])^2\)</span>. Plus précisément, dans le cas d’une loi normale d’une distribution de probabilité, les “données” ne sont pas des observations ponctuelles, mais toutes les valeurs que peut prendre la variable aléatoire continue, pondérées par leur probabilité exprimée. Il faut donc faire appel au calcul de l’intégrale pour calculer la variance comme il suit :</p>
+<p><span class="math display">\[
+var_x = \int dx  \, p(x) \cdot (x-E[x])^2
+\]</span></p>
+</section>
+<section id="visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-la-normale" class="level2">
+<h2 class="anchored" data-anchor-id="visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-la-normale">Visualisation des changements de paramètres sur la forme de la distribution de la normale</h2>
+<p>Dans l’exemple que nous avons vu, le modèle de la loi normale définit la forme de la fonction de densité de probabilité, mais cette “forme” peut varier selon le paramètre de position (<span class="math inline">\(\mu\)</span>, ou moyenne) et le paramètre d’échelle (<span class="math inline">\(\sigma\)</span>, ou écart-type). Dans le code ci-dessous, vous pouvez essayer d’entrer différentes valeurs de <span class="math inline">\(\mu\)</span> et observer l’impact que cela a sur la forme de la distribution.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Paramètres de la distribution</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">160</span> <span class="co"># Moyenne</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>sigma_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">8</span>, <span class="dv">15</span>) <span class="co"># Différents écarts-types</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Simuler les distributions</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>dx <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">130</span>, <span class="dv">200</span>, <span class="at">by =</span> dx)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer une data frame pour les trois distributions</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>()</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (sigma <span class="cf">in</span> sigma_values) {</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df, <span class="fu">data.frame</span>(<span class="at">x =</span> x_vals,</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>                             <span class="at">p =</span> <span class="fu">dnorm</span>(x_vals, <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma),</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>                             <span class="at">sigma =</span> <span class="fu">factor</span>(sigma)))</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Faire le graphique avec trois courbes</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x, p, <span class="at">color =</span> sigma)) <span class="sc">+</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span>  <span class="co"># Courbes de densité</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution normale avec 3 écart-types"</span>,</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"x"</span>,</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Densité"</span>,</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">color =</span> <span class="st">"Écart-type"</span>) <span class="sc">+</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="lintervalle-de-densité-maximale" class="level1">
+<h1>L’intervalle de densité maximale</h1>
+<p>En statistiques bayésiennes, on utilise souvent les distribution de probabilité pour calculer l’intervalle de densité maximale, aussi appelé intervalle de crédibilité ou <em>highest density interval (HDI)</em>, pour résumer l’intervalle de valeurs les plus crédibles. Nous verrons plus en detail ce concept dans le chapitre dédié à la distribution a posteriori. Pour le moment, nous pouvons déjà voir que cela correspond à l’intervalle de valeurs de la variable continue pour leuqel l’aire sous la courbe de la distribution de probabilité correspond à 0.95.</p>
+<p>Il est important de noter que l’intervalle de densité maximale (HDI) n’est pas limité aux distributions symétriques comme la loi normale. Il peut également être calculé pour des distributions asymétriques, comme les lois gamma ou beta, qui sont couramment rencontrées en statistique bayésienne. Dans ces cas, le HDI s’ajuste à la forme réelle de la distribution : l’intervalle reste centré sur les valeurs les plus probables, mais il peut être décalé et avoir des longueurs différentes de part et d’autre du mode. Cela en fait un outil particulièrement adapté pour résumer l’incertitude, même lorsque la distribution a posteriori est fortement asymétrique.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">160</span> <span class="co"># Moyenne</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="dv">8</span> <span class="co"># Écart-type</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Générer des données pour la distribution normale</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>dx <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">130</span>, <span class="dv">200</span>, <span class="at">by =</span> dx)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>p_vals <span class="ot">&lt;-</span> <span class="fu">dnorm</span>(x_vals, <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer un data frame</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x_vals, <span class="at">p =</span> p_vals)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Définir l'intervalle HDI à 95% comme [mu - 2*sigma, mu + 2*sigma]</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Approximation valide seulement pour une loi normale</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>hdi_min <span class="ot">&lt;-</span> mu <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> sigma</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>hdi_max <span class="ot">&lt;-</span> mu <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> sigma</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Sélectionner la région HDI dans le dataframe</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>df_hdi <span class="ot">&lt;-</span> <span class="fu">subset</span>(df, x <span class="sc">&gt;=</span> hdi_min <span class="sc">&amp;</span> x <span class="sc">&lt;=</span> hdi_max)</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Tracer le graphique</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x, p)) <span class="sc">+</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> darkred, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span> <span class="co"># Courbe de densité</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> df_hdi,</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> p),</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"gray"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span></span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="co"># Zone HDI en gris</span></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"95% HDI"</span>,</span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"x"</span>,</span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Densité"</span>) <span class="sc">+</span></span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="la-fonction-de-répartition-cumulative" class="level1">
+<h1>La fonction de répartition cumulative</h1>
+<p>Comme dans le cas de variables aléatoires discrètes, nous allons réfléchir en termes de probabilité cumulée dans le cas de variables aléatoires continues.</p>
+<p>Tout comme pour une variable aléatoire discrète, la fonction de répartition cumulative (<em>cumulative distribution function</em> ou CDF) d’une variable aléatoire continue donne la probabilité que la variable ait une valeur inférieure ou égale à <span class="math inline">\(x\)</span>. En d’autres termes, elle représente l’aire sous la courbe de la densité de probabilité de la variable aléatoire jusqu’à une certaine valeur <span class="math inline">\(x\)</span>. La CDF est donc croissante et varie de 0 à 1 à mesure que <span class="math inline">\(x\)</span> augmente.</p>
+<p>Un point clé dans l’étude de la CDF est le point d’inflexion, qui correspond à la valeur de <span class="math inline">\(x\)</span> pour laquelle la courbe de la CDF change de concavité, c’est-à-dire où la pente de la courbe PDF passe de croissante à décroissante (ou inversement). Ce point peut fournir des informations importantes sur la distribution, et correspond au pic dans la distribution PDF utilisée ci-dessus. Vous pouvez voir que, dans notre exemple, le point d’inflexion dans la CDF correspond à 160 cm.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Paramètres de la distribution</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">160</span> <span class="co"># Moyenne</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="dv">8</span> <span class="co"># Écart-type</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Simuler des valeurs pour la CDF</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>dx <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">130</span>, <span class="dv">200</span>, <span class="at">by =</span> dx)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>p_vals <span class="ot">&lt;-</span> <span class="fu">pnorm</span>(x_vals, <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma) <span class="co"># CDF</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Mettre les données dans une database</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x_vals, <span class="at">p =</span> p_vals)</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Faire le graphique</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x, p)) <span class="sc">+</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"darkred"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span>  <span class="co"># courbe CDF</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fonction de répartition cumulative (CDF)"</span>,</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"x"</span>,</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Probabilité cumulative"</span>) <span class="sc">+</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="la-distribution-de-cauchy" class="level1">
+<h1>La distribution de Cauchy</h1>
+<p>Jusqu’ici, nous n’avons vu que la loi normale pour les distributions de probabilités continues. Comme nous le verrons dans le chapitre sur les priors, beaucoup d’autres existent. L’une d’entre elles est la distribution (ou loi) de Cauchy. Contrairement à la plupart des distributions usuelles, la distribution de Cauchy n’a ni espérance mathématique définie, ni variance définie. Cela est dû au fait que les intégrales permettant de calculer ces moments ne convergent pas. Intuitivement, cela signifie que la “moyenne” d’un grand échantillon tiré d’une distribution de Cauchy ne se stabilise pas comme dans le cas d’une loi normale - elle peut varier considérablement à cause de la probabilité non négligeable d’observer des valeurs extrêmes. À cause de ces propriétés particulières, la distribution de Cauchy est parfois définie comme une distribution “pathologique”.</p>
+<p>Malgré ces caractéristiques, la densité de probabilité de la loi de Cauchy est très utilisée dans les applications des statistiques bayésiennes pour deux raisons principales :</p>
+<ol type="1">
+<li><p>Elle a une forme très similaire à celle de la loi normale, ce qui la rend intuitive à manipuler.</p></li>
+<li><p>Ses queues épaisses qui sont la cause des ses propriétés indéfinies sont en même temps très précieuses : elles permettent de répartir la probabilité de manière plus prudente, en attribuant une masse plus importante aux valeurs extrêmes par rapport à la normale. Cela s’avère particulièrement utile dans les situations où des valeurs aberrantes ou extrêmes sont plus fréquentes, car elle les intègre naturellement dans le modèle sans les exclure comme de simples anomalies. C’est d’ailleurs la raison pour laquelle elle est souvent utilisée comme loi a priori par défaut dans certains outils comme la fonction <code>anovaBF</code> du package <code>BayesFactor</code> sur <code>R</code>.</p></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Définir les valeurs x</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="fl">0.02</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculer les densités pour Normale et Cauchy</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>p_normal <span class="ot">&lt;-</span> <span class="fu">dnorm</span>(x_vals, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)  <span class="co"># Loi Normale</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>p_cauchy <span class="ot">&lt;-</span> <span class="fu">dcauchy</span>(x_vals, <span class="at">location =</span> <span class="dv">0</span>, <span class="at">scale =</span> <span class="dv">1</span>)  <span class="co"># Loi de Cauchy</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer un data frame</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x_vals, <span class="at">Normal =</span> p_normal, <span class="at">Cauchy =</span> p_cauchy)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Tracer le graphique</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> Normal, <span class="at">color =</span> <span class="st">"Normal"</span>), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> Cauchy, <span class="at">color =</span> <span class="st">"Cauchy"</span>), <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Normal"</span> <span class="ot">=</span> darkred, <span class="st">"Cauchy"</span> <span class="ot">=</span> <span class="st">"black"</span>)) <span class="sc">+</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparaison  Normale et Cauchy"</span>,</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"x"</span>,</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Densité"</span>,</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">color =</span> <span class="st">"Distribution"</span>) <span class="sc">+</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-cauchy" class="level3">
+<h3 class="anchored" data-anchor-id="visualisation-des-changements-de-paramètres-sur-la-forme-de-la-distribution-de-cauchy">Visualisation des changements de paramètres sur la forme de la distribution de Cauchy</h3>
+<p>Comme la loi normale, la loi de Cauchy a deux paramètres : * un paramètre de localisation <span class="math inline">\(x_0\)</span> * un paramètre d’échelle <span class="math inline">\(\gamma\)</span></p>
+<p>Nous pouvons voir les effets des changements de ces paramètres sur la forme de la distribution ci-dessous.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Définir les valeurs de x</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>, <span class="at">by =</span> <span class="fl">0.02</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculer les densités pour différentes distributions de Cauchy</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>p_cauchy1 <span class="ot">&lt;-</span> <span class="fu">dcauchy</span>(x_vals, <span class="at">location =</span> <span class="dv">0</span>, <span class="at">scale =</span> <span class="dv">1</span>) <span class="co"># Vert (Cauchy(0,1))</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>p_cauchy2 <span class="ot">&lt;-</span> <span class="fu">dcauchy</span>(x_vals, <span class="at">location =</span> <span class="dv">5</span>, <span class="at">scale =</span> <span class="dv">1</span>) <span class="co"># Bleu (Cauchy(5,1))</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>p_cauchy3 <span class="ot">&lt;-</span> <span class="fu">dcauchy</span>(x_vals, <span class="at">location =</span> <span class="dv">0</span>, <span class="at">scale =</span> <span class="fl">0.5</span>) <span class="co"># Rouge (Cauchy(0,0.5))</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>p_cauchy4 <span class="ot">&lt;-</span> <span class="fu">dcauchy</span>(x_vals, <span class="at">location =</span> <span class="dv">0</span>, <span class="at">scale =</span> <span class="dv">3</span>) <span class="co"># Orange (Cauchy(0,3))</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer un data frame</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">rep</span>(x_vals, <span class="dv">4</span>),</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(p_cauchy1, p_cauchy2, p_cauchy3, p_cauchy4),</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">Distribution =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"Cauchy(0,1)"</span>, <span class="st">"Cauchy(5,1)"</span>, <span class="st">"Cauchy(0,0.5)"</span>, <span class="st">"Cauchy(0,3)"</span>), <span class="at">each =</span> <span class="fu">length</span>(x_vals))</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Tracer le graphique</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x, y, <span class="at">color =</span> Distribution)) <span class="sc">+</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Densités distributions de Cauchy"</span>,</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"x"</span>,</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Densité"</span>,</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">color =</span> <span class="st">"Distribution"</span>) <span class="sc">+</span></span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="probabilité_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>En théorie des probabilités, la représentation graphique de la loi de Cauchy se fait par la <em>versiera</em> de Maria Gaetana Agnesi. Bien que cette courbe ait été introduite à l’origine dans un autre contexte — la géométrie analytique — sa forme mathématique exacte correspond à la fonction de densité de la distribution de Cauchy standard. Bien que Maria Gaetana Agnesi n’ait pas elle-même travaillé dans le domaine de la probabilité, la fonction qu’elle a étudié est devenue une pièce centrale dans la modélisation statistique moderne, surtout dans les domaines où l’on souhaite éviter d’imposer une certitude excessive sur les valeurs extrêmes.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
