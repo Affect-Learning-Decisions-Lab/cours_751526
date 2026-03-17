@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Régression bayésienne</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="bayesian_regression_files/libs/clipboard/clipboard.min.js"></script>
+<script src="bayesian_regression_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="bayesian_regression_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="bayesian_regression_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="bayesian_regression_files/libs/quarto-html/popper.min.js"></script>
+<script src="bayesian_regression_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="bayesian_regression_files/libs/quarto-html/anchor.min.js"></script>
+<link href="bayesian_regression_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="bayesian_regression_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="bayesian_regression_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="bayesian_regression_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="bayesian_regression_files/libs/bootstrap/bootstrap-64a51ce1014f4bc60ad07f3e402e451a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#quelques-aspects-techniques-avant-de-commencer" id="toc-quelques-aspects-techniques-avant-de-commencer" class="nav-link active" data-scroll-target="#quelques-aspects-techniques-avant-de-commencer">Quelques aspects techniques avant de commencer</a></li>
+  <li><a href="#création-dun-jeu-de-données-simulé" id="toc-création-dun-jeu-de-données-simulé" class="nav-link" data-scroll-target="#création-dun-jeu-de-données-simulé">Création d’un jeu de données simulé</a></li>
+  <li><a href="#définition-des-paramètres-du-glm" id="toc-définition-des-paramètres-du-glm" class="nav-link" data-scroll-target="#définition-des-paramètres-du-glm">Définition des paramètres du GLM</a>
+  <ul class="collapse">
+  <li><a href="#priors" id="toc-priors" class="nav-link" data-scroll-target="#priors">Priors</a>
+  <ul class="collapse">
+  <li><a href="#beta_0" id="toc-beta_0" class="nav-link" data-scroll-target="#beta_0"><span class="math inline">\(\beta_0\)</span></a></li>
+  <li><a href="#beta_1" id="toc-beta_1" class="nav-link" data-scroll-target="#beta_1"><span class="math inline">\(\beta_1\)</span></a></li>
+  <li><a href="#sigma" id="toc-sigma" class="nav-link" data-scroll-target="#sigma"><span class="math inline">\(\sigma\)</span></a></li>
+  </ul></li>
+  <li><a href="#mcmc" id="toc-mcmc" class="nav-link" data-scroll-target="#mcmc">MCMC</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Régression bayésienne</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Dans ce notebook, nous allons voir l’application de l’approche bayésienne dans le cas d’une régression linéaire simple. Pour illustrer cette exemple, nous allons utiliser le package <code>brms</code>.</p>
+<p>Ce package est particulièrememt utile pour deux raisons :</p>
+<ol type="1">
+<li><p>Il constitue une interface permettant d’écrire des modèles bayésiens dans le langage <code>R</code> en s’appuyant sur la puissance du moteur de calcul de Stan. Stan est un langage de programmation probabiliste permettant d’implémenter les MCMCs pour le calcul de la distribution a posteriori. Il est écrit en <code>C++</code> mais peut être utilisé via différentes interfaces, dont <code>R</code>, <code>Python</code>, et <code>Matlab</code>. D’autres outils tels que WinBUGS ou JAGS permettent d’implémenter des MCMCs avec <code>R</code> ; Stan a l’avantage de reposer sur une méthode avancée appelée échantillonnage Hamiltonien dynamique qui lui permet de proposer une exploration plus efficace et plus rapide de l’espace des paramètres.</p></li>
+<li><p>Il permet de spécifier des modèles de régression bayésienne de façon intuitive, en utilisant une syntaxe similaire à celle des regressions fréquentistes dont nous avons l’habitude. <code>brms</code> permet donc d’utiliser non seulement des modèles linéaires généralisés classiques (par exemple <code>lm</code> ou <code>lme</code>), mais aussi des modèles linéaires à effets mixtes (aussi appelés modèles hiérarchiques, par exemple <code>lmer</code>), tout en profitant de l’efficacité et de la robustesse des algorithmes de <code>Stan</code> pour l’estimation. <code>brms</code> permet donc de modéliser des stuctures de données plus complexes—par exemple, avec des effets aléatoires pour les individus ou les items—tout en adoptant une approche pleinement bayésienne.</p></li>
+</ol>
+<section id="quelques-aspects-techniques-avant-de-commencer" class="level1">
+<h1>Quelques aspects techniques avant de commencer</h1>
+<p>Bien que <code>bmrs</code> et <code>rstan</code> soient pratiques à utiliser, l’installation peut poser quelques soucis. Le code ci-dessous devrait marcher en principe, mais cela peut prendre un certain temps.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Installation des packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("brms")</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("tidybayes")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Installer CmdStan en local (nécessite internet, peut durer jusqu'à 10 minutes)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>cmdstanr<span class="sc">::</span><span class="fu">install_cmdstan</span>(<span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The C++ toolchain required for CmdStan is setup properly!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Latest CmdStan release is v2.38.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Installing CmdStan v2.38.0 in /home/lavinia/.cmdstan/cmdstan-2.38.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Downloading cmdstan-2.38.0.tar.gz from GitHub...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Removing the existing installation of CmdStan...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Download complete</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Unpacking archive...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Building CmdStan binaries...</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -MT src/cmdstan/main.o -MM -E -MG -MP -MF src/cmdstan/main.d src/cmdstan/main.cpp
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -MT bin/cmdstan/stansummary.o -MM -E -MG -MP -MF src/cmdstan/stansummary.d src/cmdstan/stansummary.cpp
+cp bin/linux-stanc bin/stanc
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/nvector/serial/nvector_serial.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/nvector/serial/nvector_serial.o
+chmod +x bin/stanc
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_math.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_math.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodea.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodea.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodea_io.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodea_io.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_bandpre.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_bandpre.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_bbdpre.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_bbdpre.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_diag.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_diag.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_direct.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_direct.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_io.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_io.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_ls.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_ls.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_sim.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_sim.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_stg1.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_stg1.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_stg.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_stg.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_spils.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_spils.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_band.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_band.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_context.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_context.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_dense.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_dense.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_direct.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_direct.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_futils.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_futils.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_iterative.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_iterative.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_linearsolver.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_linearsolver.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_matrix.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_matrix.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_memory.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_memory.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nonlinearsolver.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nonlinearsolver.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector_senswrapper.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector_senswrapper.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_version.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_version.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/band/sunmatrix_band.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/band/sunmatrix_band.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/dense/sunmatrix_dense.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/dense/sunmatrix_dense.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/band/sunlinsol_band.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/band/sunlinsol_band.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/dense/sunlinsol_dense.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/dense/sunlinsol_dense.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/newton/sunnonlinsol_newton.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/newton/sunnonlinsol_newton.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/fixedpoint/sunnonlinsol_fixedpoint.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/fixedpoint/sunnonlinsol_fixedpoint.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idaa.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idaa.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idaa_io.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idaa_io.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_bbdpre.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_bbdpre.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_direct.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_direct.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_ic.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_ic.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_io.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_io.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_ls.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_ls.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls_sim.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls_sim.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls_stg.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls_stg.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_spils.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_spils.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_bbdpre.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_bbdpre.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_direct.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_direct.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_io.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_io.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_ls.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_ls.o
+g++ -pipe   -pthread -D_REENTRANT  -O3 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials -DNO_FPRINTF_OUTPUT     -O3  -c -x c -include stan/lib/stan_math/lib/sundials_6.1.1/include/stan_sundials_printf_override.hpp stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_spils.c -o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_spils.o
+touch stan/lib/stan_math/lib/tbb/tbb-make-check
+
+--- Compiling pre-compiled header. This might take a few seconds. ---
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -fvisibility=hidden src/cmdstan/stansummary.cpp -o bin/cmdstan/stansummary.o
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c stan/src/stan/model/model_header.hpp -o stan/src/stan/model/model_header.hpp.gch/model_header_13_3.hpp.gch
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -fvisibility=hidden src/cmdstan/print.cpp -o bin/cmdstan/print.o
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -fvisibility=hidden src/cmdstan/diagnose.cpp -o bin/cmdstan/diagnose.o
+ar -rs stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_nvecserial.a stan/lib/stan_math/lib/sundials_6.1.1/src/nvector/serial/nvector_serial.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_math.o
+ar: creating stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_nvecserial.a
+ar -rs stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_cvodes.a stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodea.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodea_io.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_bandpre.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_bbdpre.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_diag.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_direct.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_io.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_ls.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_sim.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_stg1.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_nls_stg.o stan/lib/stan_math/lib/sundials_6.1.1/src/cvodes/cvodes_spils.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_context.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_direct.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_futils.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_iterative.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_linearsolver.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_math.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_matrix.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_memory.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nonlinearsolver.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector_senswrapper.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_version.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/band/sunmatrix_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/dense/sunmatrix_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/band/sunlinsol_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/dense/sunlinsol_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/newton/sunnonlinsol_newton.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/fixedpoint/sunnonlinsol_fixedpoint.o
+ar: creating stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_cvodes.a
+ar -rs stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_idas.a stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idaa.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idaa_io.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_bbdpre.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_direct.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_ic.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_io.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_ls.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls_sim.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_nls_stg.o stan/lib/stan_math/lib/sundials_6.1.1/src/idas/idas_spils.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_context.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_direct.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_futils.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_iterative.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_linearsolver.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_math.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_matrix.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_memory.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nonlinearsolver.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector_senswrapper.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_version.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/band/sunmatrix_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/dense/sunmatrix_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/band/sunlinsol_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/dense/sunlinsol_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/newton/sunnonlinsol_newton.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/fixedpoint/sunnonlinsol_fixedpoint.o
+ar: creating stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_idas.a
+ar -rs stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_kinsol.a stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_bbdpre.o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol.o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_direct.o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_io.o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_ls.o stan/lib/stan_math/lib/sundials_6.1.1/src/kinsol/kinsol_spils.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_context.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_direct.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_futils.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_iterative.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_linearsolver.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_math.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_matrix.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_memory.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nonlinearsolver.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_nvector_senswrapper.o stan/lib/stan_math/lib/sundials_6.1.1/src/sundials/sundials_version.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/band/sunmatrix_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunmatrix/dense/sunmatrix_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/band/sunlinsol_band.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunlinsol/dense/sunlinsol_dense.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/newton/sunnonlinsol_newton.o stan/lib/stan_math/lib/sundials_6.1.1/src/sunnonlinsol/fixedpoint/sunnonlinsol_fixedpoint.o
+ar: creating stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_kinsol.a
+touch stan/lib/stan_math/lib/tbb/version_tbb_2020.3
+tbb_root="../tbb_2020.3" WINARM64="" CXX="g++" CC="gcc" LDFLAGS='-Wl,-L,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"   -Wl,-rpath,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"' 'make' -C "stan/lib/stan_math/lib/tbb" -r -f "/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb_2020.3/build/Makefile.tbb" compiler=gcc cfg=release stdver=c++17  CXXFLAGS="-Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation  "
+make[1]: Entering directory '/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb'
+/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb_2020.3/build/Makefile.tbb:28: CONFIG: cfg=release arch=intel64 compiler=gcc target=linux runtime=cc13.3.0_libc2.39_kernel6.8.0
+g++ -o concurrent_hash_map.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/concurrent_hash_map.cpp
+
+--- Compiling the main object file. This might take up to a minute. ---
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -o src/cmdstan/main.o src/cmdstan/main.cpp
+In file included from ../tbb_2020.3/src/tbb/concurrent_hash_map.cpp:17:
+../tbb_2020.3/include/tbb/concurrent_hash_map.h:347:23: warning: ‘template&lt;class _Category, class _Tp, class _Distance, class _Pointer, class _Reference&gt; struct std::iterator’ is deprecated [-Wdeprecated-declarations]
+  347 |         : public std::iterator&lt;std::forward_iterator_tag,Value&gt;
+      |                       ^~~~~~~~
+In file included from /usr/include/c++/13/bits/stl_construct.h:61,
+                 from /usr/include/c++/13/bits/stl_tempbuf.h:61,
+                 from /usr/include/c++/13/memory:66,
+                 from ../tbb_2020.3/include/tbb/tbb_stddef.h:452,
+                 from ../tbb_2020.3/include/tbb/concurrent_hash_map.h:23:
+/usr/include/c++/13/bits/stl_iterator_base_types.h:127:34: note: declared here
+  127 |     struct _GLIBCXX17_DEPRECATED iterator
+      |                                  ^~~~~~~~
+cc1plus: note: unrecognized command-line option ‘-Wno-unknown-warning-option’ may have been intended to silence earlier diagnostics
+g++ -o concurrent_queue.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/concurrent_queue.cpp
+In file included from ../tbb_2020.3/src/tbb/concurrent_queue.cpp:22:
+../tbb_2020.3/include/tbb/internal/_concurrent_queue_impl.h:749:21: warning: ‘template&lt;class _Category, class _Tp, class _Distance, class _Pointer, class _Reference&gt; struct std::iterator’ is deprecated [-Wdeprecated-declarations]
+  749 |         public std::iterator&lt;std::forward_iterator_tag,Value&gt; {
+      |                     ^~~~~~~~
+In file included from /usr/include/c++/13/bits/stl_construct.h:61,
+                 from /usr/include/c++/13/bits/stl_tempbuf.h:61,
+                 from /usr/include/c++/13/memory:66,
+                 from ../tbb_2020.3/include/tbb/tbb_stddef.h:452,
+                 from ../tbb_2020.3/src/tbb/concurrent_queue.cpp:17:
+/usr/include/c++/13/bits/stl_iterator_base_types.h:127:34: note: declared here
+  127 |     struct _GLIBCXX17_DEPRECATED iterator
+      |                                  ^~~~~~~~
+../tbb_2020.3/include/tbb/internal/_concurrent_queue_impl.h:1013:21: warning: ‘template&lt;class _Category, class _Tp, class _Distance, class _Pointer, class _Reference&gt; struct std::iterator’ is deprecated [-Wdeprecated-declarations]
+ 1013 |         public std::iterator&lt;std::forward_iterator_tag,Value&gt; {
+      |                     ^~~~~~~~
+/usr/include/c++/13/bits/stl_iterator_base_types.h:127:34: note: declared here
+  127 |     struct _GLIBCXX17_DEPRECATED iterator
+      |                                  ^~~~~~~~
+cc1plus: note: unrecognized command-line option ‘-Wno-unknown-warning-option’ may have been intended to silence earlier diagnostics
+g++ -o concurrent_vector.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/concurrent_vector.cpp
+g++ -o dynamic_link.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/dynamic_link.cpp
+g++ -o itt_notify.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/itt_notify.cpp
+g++ -o cache_aligned_allocator.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/cache_aligned_allocator.cpp
+g++ -o pipeline.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/pipeline.cpp
+g++ -o queuing_mutex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/queuing_mutex.cpp
+g++ -o queuing_rw_mutex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/queuing_rw_mutex.cpp
+g++ -o reader_writer_lock.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/reader_writer_lock.cpp
+g++ -o spin_rw_mutex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/spin_rw_mutex.cpp
+g++ -o x86_rtm_rw_mutex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/x86_rtm_rw_mutex.cpp
+g++ -o spin_mutex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/spin_mutex.cpp
+g++ -o critical_section.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/critical_section.cpp
+g++ -o mutex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/mutex.cpp
+g++ -o recursive_mutex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/recursive_mutex.cpp
+g++ -o condition_variable.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/condition_variable.cpp
+g++ -o tbb_thread.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/tbb_thread.cpp
+g++ -o concurrent_monitor.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/concurrent_monitor.cpp
+g++ -o semaphore.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/semaphore.cpp
+g++ -o private_server.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/private_server.cpp
+g++ -o rml_tbb.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/rml/client/rml_tbb.cpp
+sh ../tbb_2020.3/build/version_info_linux.sh g++ -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17 -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include -I. &gt;version_string.ver
+g++ -o tbb_misc_ex.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/tbb_misc_ex.cpp
+g++ -o task.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/task.cpp
+g++ -o task_group_context.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/task_group_context.cpp
+g++ -o governor.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/governor.cpp
+g++ -o market.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/market.cpp
+g++ -o arena.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/arena.cpp
+g++ -o scheduler.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/scheduler.cpp
+g++ -o observer_proxy.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/observer_proxy.cpp
+g++ -o tbb_statistics.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/tbb_statistics.cpp
+g++ -o tbb_main.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/tbb/tbb_main.cpp
+g++ -o concurrent_vector_v2.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/old/concurrent_vector_v2.cpp
+g++ -o concurrent_queue_v2.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/old/concurrent_queue_v2.cpp
+g++ -o spin_rw_mutex_v2.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/old/spin_rw_mutex_v2.cpp
+g++ -o task_v2.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include ../tbb_2020.3/src/old/task_v2.cpp
+sh ../tbb_2020.3/build/generate_tbbvars.sh
+echo "INPUT (libtbb.so.2)" &gt; libtbb.so
+g++ -E -x c++ ../tbb_2020.3/src/tbb/lin64-tbb-export.def -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include &gt; tbb.def
+g++ -o tbb_misc.o -c -MMD -O2 -g -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -m64 -mrtm  -fPIC -flifetime-dse=1 -D__TBB_BUILD=1 -Wall -Wextra -Wno-parentheses -Wno-sized-deallocation -Wno-unknown-warning-option -Wno-deprecated-copy -Wno-missing-attributes -Wno-class-memaccess -Wno-sized-deallocation   -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++17  -I../tbb_2020.3/src -I../tbb_2020.3/src/rml/include -I../tbb_2020.3/include -I. ../tbb_2020.3/src/tbb/tbb_misc.cpp
+g++ -fPIC -o libtbb.so.2 concurrent_hash_map.o concurrent_queue.o concurrent_vector.o dynamic_link.o itt_notify.o cache_aligned_allocator.o pipeline.o queuing_mutex.o queuing_rw_mutex.o reader_writer_lock.o spin_rw_mutex.o x86_rtm_rw_mutex.o spin_mutex.o critical_section.o mutex.o recursive_mutex.o condition_variable.o tbb_thread.o concurrent_monitor.o semaphore.o private_server.o rml_tbb.o tbb_misc.o tbb_misc_ex.o task.o task_group_context.o governor.o market.o arena.o scheduler.o observer_proxy.o tbb_statistics.o tbb_main.o concurrent_vector_v2.o concurrent_queue_v2.o spin_rw_mutex_v2.o task_v2.o   -ldl -lrt -shared -Wl,-soname=libtbb.so.2 -pthread -m64 -Wl,-L,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"   -Wl,-rpath,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb" -Wl,--version-script,tbb.def
+make[1]: Leaving directory '/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb'
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS               -Wl,-L,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"   -Wl,-rpath,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"      bin/cmdstan/stansummary.o stan/lib/stan_math/lib/tbb/libtbb.so.2       -ltbb   -o bin/stansummary
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS               -Wl,-L,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"   -Wl,-rpath,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"      bin/cmdstan/print.o stan/lib/stan_math/lib/tbb/libtbb.so.2       -ltbb   -o bin/print
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS               -Wl,-L,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"   -Wl,-rpath,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"      bin/cmdstan/diagnose.o stan/lib/stan_math/lib/tbb/libtbb.so.2       -ltbb   -o bin/diagnose
+
+--- CmdStan v2.38.0 built ---
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -MT stan/src/stan/model/model_header.hpp.gch/model_header_13_3.hpp.gch -M -E -MG -MP -MF stan/src/stan/model/model_header.hpp.gch/model_header_13_3.d stan/src/stan/model/model_header.hpp
+
+--- Translating Stan model to C++ code ---
+bin/stanc  --o=examples/bernoulli/bernoulli.hpp examples/bernoulli/bernoulli.stan
+
+--- Compiling C++ code ---
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS          -c -Wno-ignored-attributes   -x c++ -o examples/bernoulli/bernoulli.o examples/bernoulli/bernoulli.hpp
+
+--- Linking model ---
+g++ -Wno-deprecated-declarations -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I stan/lib/stan_math/lib/tbb_2020.3/include    -O3 -I src -I stan/src -I stan/lib/rapidjson_1.1.0/ -I lib/CLI11-1.9.1/ -I stan/lib/stan_math/ -I stan/lib/stan_math/lib/eigen_3.4.0 -I stan/lib/stan_math/lib/boost_1.87.0 -I stan/lib/stan_math/lib/sundials_6.1.1/include -I stan/lib/stan_math/lib/sundials_6.1.1/src/sundials    -DBOOST_DISABLE_ASSERTS               -Wl,-L,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"   -Wl,-rpath,"/home/lavinia/.cmdstan/cmdstan-2.38.0/stan/lib/stan_math/lib/tbb"      examples/bernoulli/bernoulli.o src/cmdstan/main.o       -ltbb   stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_nvecserial.a stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_cvodes.a stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_idas.a stan/lib/stan_math/lib/sundials_6.1.1/lib/libsundials_kinsol.a  stan/lib/stan_math/lib/tbb/libtbb.so.2 -o examples/bernoulli/bernoulli
+rm examples/bernoulli/bernoulli.o examples/bernoulli/bernoulli.hpp</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>* Finished installing CmdStan to /home/lavinia/.cmdstan/cmdstan-2.38.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>CmdStan path set to: /home/lavinia/.cmdstan/cmdstan-2.38.0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Vérifier que tout fonctionne</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>cmdstanr<span class="sc">::</span><span class="fu">check_cmdstan_toolchain</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The C++ toolchain required for CmdStan is setup properly!</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>cmdstanr<span class="sc">::</span><span class="fu">cmdstan_version</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "2.38.0"</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ne pas afficher les warnings</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">warn =</span> <span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Chargement des packages</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Rcpp</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading 'brms' package (version 2.23.0). Useful instructions
+can be found by typing help('brms'). A more detailed introduction
+to the package is available through vignette('brms_overview').</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'brms'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:stats':
+
+    ar</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cmdstanr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>This is cmdstanr version 0.8.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>- CmdStanR documentation and vignettes: mc-stan.org/cmdstanr</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>- CmdStan path: /home/lavinia/.cmdstan/cmdstan-2.38.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>- CmdStan version: 2.38.0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>This is bayesplot version 1.15.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>- Online documentation and vignettes at mc-stan.org/bayesplot</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>- bayesplot theme set to bayesplot::theme_default()</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>   * Does _not_ affect other ggplot2 plots</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>   * See ?bayesplot_theme_set for details on theme setting</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'bayesplot'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:brms':
+
+    rhat</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'tidybayes'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:brms':
+
+    dstudent_t, pstudent_t, qstudent_t, rstudent_t</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelr)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   4.0.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixer la graine aléatoire pour rendre les analyses reproducibles</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1223</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="création-dun-jeu-de-données-simulé" class="level1">
+<h1>Création d’un jeu de données simulé</h1>
+<p>Tout comme dans le premier cours (motivations), nous allons simuler un jeu données afin de pouvoir modifier facilement les caractéristiques de l’étude utilisée en exemple et d’en observer les effets.</p>
+<p>Nous allons simuler un jeu de données dans lequel nous mesurons les niveaux d’anxiété-état avec la sous-échelle état du State-Trait Anxiety Questionnaire (STAI-State) et les niveaux socio-économiques de 120 participant-e-x-s. Le niveau socio-économique va de 1 à 20, 1 étant le niveau le plus bas et 20 le niveau le plus élevé. Le niveau d’anxiété-état varie entre 20 et 80, avec des scores au-delà de 50 indiquant une souffrance importante.</p>
+<p>Dans le jeu de données que nous allons simuler, nous allons aussi insérer un lien entre les scores d’anxiété et le niveau socio-économique.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Nombre de participant-e-x-s</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">120</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Générer un statut socio-économique entre 1 et 20</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>socioecon <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">19</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Simuler les scores d'anxiété avec une distribution gamma ajustée</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>base_anxiety <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">qgamma</span>(<span class="fu">ppoints</span>(n), <span class="at">shape =</span> <span class="dv">10</span>, <span class="at">scale =</span> <span class="dv">100</span>))  <span class="co"># Ajustement pour réduire les 20</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>base_anxiety <span class="ot">&lt;-</span> scales<span class="sc">::</span><span class="fu">rescale</span>(base_anxiety, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">20</span>, <span class="dv">80</span>))</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Générer des scores d’anxiété influencés par le statut socio-économique</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>anxiety_scores <span class="ot">&lt;-</span> <span class="fu">round</span>(base_anxiety <span class="sc">-</span> socioecon <span class="sc">*</span> <span class="dv">2</span> <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="dv">5</span>))</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>anxiety_scores <span class="ot">&lt;-</span> anxiety_scores <span class="sc">+</span> <span class="dv">25</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>anxiety_scores <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="fu">pmin</span>(anxiety_scores, <span class="dv">80</span>), <span class="dv">20</span>)</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Création du dataset final</span></span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>simulated_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">sub_id =</span> <span class="dv">1</span><span class="sc">:</span>n,                   <span class="co"># Identifiant des participant-e-x-s</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">socioecon =</span> socioecon,          <span class="co"># Statut socio-économique</span></span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">anxiety =</span> anxiety_scores        <span class="co"># Score d'anxiété</span></span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>simulated_data<span class="sc">$</span>sub_id <span class="ot">&lt;-</span> <span class="fu">factor</span>(simulated_data<span class="sc">$</span>sub_id)</span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Vérification des premières lignes</span></span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(simulated_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  sub_id socioecon anxiety
+  &lt;fct&gt;      &lt;int&gt;   &lt;dbl&gt;
+1 1              0      47
+2 2              1      43
+3 3              2      40
+4 4              3      39
+5 5              4      47
+6 6              5      45</code></pre>
+</div>
+</div>
+</section>
+<section id="définition-des-paramètres-du-glm" class="level1">
+<h1>Définition des paramètres du GLM</h1>
+<section id="priors" class="level2">
+<h2 class="anchored" data-anchor-id="priors">Priors</h2>
+<p>Dans notre modèle de régression linéaire simple, nous avons trois paramètres à estimer.</p>
+<p>Dans un modèle linéaire généralisé (GLM), nous cherchons à estimer trois paramètres principaux : <span class="math inline">\(\beta_0\)</span> (l’ordonnée à l’origine de la droite), <span class="math inline">\(\beta_1\)</span> (la pente de la droite), et <strong><span class="math inline">\(\sigma\)</span></strong> (le paramètre de dispersion des données autour de la droite, souvent assimilé à l’écart-type dans le cas d’une distribution normale des erreurs).</p>
+<p>Nous pouvons définir les connaissances a priori que nous avons sur nos trois paramètres du modèle avant même de recueillir les données. Pour cela, il est essentiel de réfléchir à ce que nous savons déjà sur notre variable dépendante. Dans notre cas, il s’agit du STAI-State, un questionnaire mesurant l’anxiété-état. Ce score varie entre 20 (niveau d’anxiété très faible) et 80 (niveau d’anxiété très élevé). La valeur moyenne du STAI-State peut différer selon divers facteurs tels que le genre, l’âge ou encore le pays d’origine. Selon les études, la moyenne peut varier entre 45 et 50 avec des écarts-types assez larges, indiquant une variabilité importante entre les individus.</p>
+<section id="beta_0" class="level3">
+<h3 class="anchored" data-anchor-id="beta_0"><span class="math inline">\(\beta_0\)</span></h3>
+<p>L’intercept représente le niveau d’anxiété-état correspondant au niveau socio-économique le plus bas. Nous pouvons donc imaginer que le niveau d’anxiété-état correspondant au niveau socio-économique le plus bas soit un peu plus élevé que le niveau d’anxiété-état typiquement rapporté dans les études, mais nous allons garder un niveau d’incertitude assez elevé. Nous pouvons modéliser cela avec un distribution normale centrée autour de 50, avec un écart-type de 20 (le double de l’écart-type typique).</p>
+<p>Nous pouvons le visualiser de la manière suivante :</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Définir l'étendue des valeurs plausibles de l'intercept</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>x_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">80</span>, <span class="at">length.out =</span> <span class="dv">1000</span>)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Densité de probabilité pour le prior N(50, 20)</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>prior_density <span class="ot">&lt;-</span> <span class="fu">dnorm</span>(x_vals, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">20</span>)</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer la base de données</span></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>prior_df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">intercept =</span> x_vals,</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">density =</span> prior_density</span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Faire le graphique</span></span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(prior_df, <span class="fu">aes</span>(<span class="at">x =</span> intercept, <span class="at">y =</span> density)) <span class="sc">+</span></span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"darkgreen"</span>, <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Prior de l'intercept"</span>,</span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Valeur de l'intercept (score STAI-State)"</span>,</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Densité de probabilité"</span></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="beta_1" class="level3">
+<h3 class="anchored" data-anchor-id="beta_1"><span class="math inline">\(\beta_1\)</span></h3>
+<p>Le paramètre de pente représente le changement moyen dans le score d’anxiété-état pour une unité de changement de niveau socio-economique. Pour établir le prior de ce paramètre, nous souhaitons conserver un haut niveau d’incertitude quant à la force de l’effet, afin de ne pas contraindre excessivement le modèle. Toutefois, sur la base de connaissances théoriques ou empiriques préalables, nous avons des raisons de penser qu’il est plus probable que l’effet soit négatif que positif. Cela peut par exemple refléter une hypothèse selon laquelle une augmentation de la variable prédictive serait associée à une diminution du score de la variable dépendante. Ainsi, bien que le prior reste relativement large, il est légèrement asymétrique, en faveur de valeurs négatives. Nous pouvons à nouveau utiliser une distribution normale avec une moyenne de -2.5 (legèrement négative) et un écart-type de 5. Nous pouvons le visualiser de la manière suivante, en mettant en valeur les valeurs négatives afin de mieux visualiser l’asymétrie :</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Définir l'étendue des valeurs plausibles pour la pente</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>slope_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">15</span>, <span class="dv">15</span>, <span class="at">length.out =</span> <span class="dv">1000</span>)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Densité de probabilité pour le prior N(-2, 5)</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>slope_density <span class="ot">&lt;-</span> <span class="fu">dnorm</span>(slope_vals, <span class="at">mean =</span> <span class="sc">-</span><span class="fl">2.5</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer la base de données</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>slope_df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">slope =</span> slope_vals,</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">density =</span> slope_density</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Graphique avec zone ombrée pour les pentes négatives</span></span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(slope_df, <span class="fu">aes</span>(<span class="at">x =</span> slope, <span class="at">y =</span> density)) <span class="sc">+</span></span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"darkgreen"</span>, <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(</span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">subset</span>(slope_df, slope <span class="sc">&lt;=</span> <span class="dv">0</span>),</span>
+<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> slope, <span class="at">y =</span> density),</span>
+<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"darkgreen"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span></span>
+<span id="cb46-20"><a href="#cb46-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb46-21"><a href="#cb46-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb46-22"><a href="#cb46-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Prior de la pente"</span>,</span>
+<span id="cb46-23"><a href="#cb46-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Valeur de la pente"</span>,</span>
+<span id="cb46-24"><a href="#cb46-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Densité de probabilité"</span></span>
+<span id="cb46-25"><a href="#cb46-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb46-26"><a href="#cb46-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sigma" class="level3">
+<h3 class="anchored" data-anchor-id="sigma"><span class="math inline">\(\sigma\)</span></h3>
+<p>Ce paramètre représente l’erreur ou la dispersion autour de la prédiction de notre modèle. Nous devons estimer dans quelle mesure les données observées sont susceptibles de s’écarter de la tendance générale. Nous savons que l’échelle du STAI-State varie entre 20 et 80 et que la variance typique (pas dans un modèle de regression) est de 10. Nous savons aussi que <span class="math inline">\(\sigma\)</span> est toujours positif.</p>
+<p>Nous pouvons donc utiliser une distribution gamma (que nous n’avons pas vue en cours) pour déterminer des valeurs positives, avec une incertitude importante, mais en laissant moins de probabilité aux valeurs extrêmes (comme une valeur de 0 ou des valeurs inférieures à 50).</p>
+<p>Nous pouvons visualiser cette distribution de la manière suivante :</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Définir l'étendue des valeurs plausibles pour sigma</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>sigma_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">50</span>, <span class="at">length.out =</span> <span class="dv">1000</span>)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Densité de la distribution gamma (2, 0.1)</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>sigma_density <span class="ot">&lt;-</span> <span class="fu">dgamma</span>(sigma_vals, <span class="at">shape =</span> <span class="dv">2</span>, <span class="at">rate =</span> <span class="fl">0.1</span>)</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Créer une base de données</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>sigma_df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma =</span> sigma_vals,</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">density =</span> sigma_density</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Graphique</span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sigma_df, <span class="fu">aes</span>(<span class="at">x =</span> sigma, <span class="at">y =</span> density)) <span class="sc">+</span></span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"#013220"</span>, <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Prior gamma pour σ"</span>,</span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">expression</span>(sigma),</span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Densité de probabilité"</span></span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="mcmc" class="level2">
+<h2 class="anchored" data-anchor-id="mcmc">MCMC</h2>
+<p>Les derniers paramètres que nous devons définir concernent le chaines MCMC. Il est essentiel de comprendre plusieurs paramètres de configuration :</p>
+<ul>
+<li><p>Le paramètre <code>niter</code> correspond au nombre total d’itérations, c’est-à-dire au nombre de pas que chaque chaîne va effectuer pour explorer l’espace des paramètres.</p></li>
+<li><p>Parmi ces itérations, une partie est réservée au <code>warmup</code> : ce sont les premiers pas effectués avant de commencer à enregistrer les échantillons. Ces itérations servent à ajuster l’algorithme (par exemple, à adapter la taille des pas) et sont exclues de l’inférence finale.</p></li>
+<li><p>Enfin, le paramètre <code>chains</code> correspond au nombre de chaînes indépendantes lancées en parallèle. Chaque chaîne part d’un point différent et permet de vérifier la stabilité et la convergence du modèle. Si les chaînes donnent des résultats similaires malgré des points de départ différents, cela renforce la confiance dans les estimations produites.</p></li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Modèle de régression linéaire bayésien</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>niter <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>warm <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>chains <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>cores <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>nsim <span class="ot">&lt;-</span> <span class="dv">40000</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>bglm <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  anxiety <span class="sc">~</span> socioecon,</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> simulated_data,</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> gaussian,</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>  priors <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">50</span>, <span class="dv">20</span>), <span class="at">class =</span> <span class="st">"Intercept"</span>),</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="dv">5</span>), <span class="at">class =</span> <span class="st">"b"</span>, <span class="at">coef =</span> <span class="st">"socioecon"</span>),</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">prior</span>(<span class="fu">gamma</span>(<span class="dv">2</span>, <span class="fl">0.1</span>), <span class="at">class =</span> <span class="st">"sigma"</span>)</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">sample_prior =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">iter =</span> niter,</span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
+<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.99</span>)</span>
+<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Start sampling</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Running MCMC with 4 sequential chains...
+
+Chain 1 Iteration:    1 / 5000 [  0%]  (Warmup) 
+Chain 1 Iteration:  100 / 5000 [  2%]  (Warmup) 
+Chain 1 Iteration:  200 / 5000 [  4%]  (Warmup) 
+Chain 1 Iteration:  300 / 5000 [  6%]  (Warmup) 
+Chain 1 Iteration:  400 / 5000 [  8%]  (Warmup) 
+Chain 1 Iteration:  500 / 5000 [ 10%]  (Warmup) 
+Chain 1 Iteration:  600 / 5000 [ 12%]  (Warmup) 
+Chain 1 Iteration:  700 / 5000 [ 14%]  (Warmup) 
+Chain 1 Iteration:  800 / 5000 [ 16%]  (Warmup) 
+Chain 1 Iteration:  900 / 5000 [ 18%]  (Warmup) 
+Chain 1 Iteration: 1000 / 5000 [ 20%]  (Warmup) 
+Chain 1 Iteration: 1001 / 5000 [ 20%]  (Sampling) 
+Chain 1 Iteration: 1100 / 5000 [ 22%]  (Sampling) 
+Chain 1 Iteration: 1200 / 5000 [ 24%]  (Sampling) 
+Chain 1 Iteration: 1300 / 5000 [ 26%]  (Sampling) 
+Chain 1 Iteration: 1400 / 5000 [ 28%]  (Sampling) 
+Chain 1 Iteration: 1500 / 5000 [ 30%]  (Sampling) 
+Chain 1 Iteration: 1600 / 5000 [ 32%]  (Sampling) 
+Chain 1 Iteration: 1700 / 5000 [ 34%]  (Sampling) 
+Chain 1 Iteration: 1800 / 5000 [ 36%]  (Sampling) 
+Chain 1 Iteration: 1900 / 5000 [ 38%]  (Sampling) 
+Chain 1 Iteration: 2000 / 5000 [ 40%]  (Sampling) 
+Chain 1 Iteration: 2100 / 5000 [ 42%]  (Sampling) 
+Chain 1 Iteration: 2200 / 5000 [ 44%]  (Sampling) 
+Chain 1 Iteration: 2300 / 5000 [ 46%]  (Sampling) 
+Chain 1 Iteration: 2400 / 5000 [ 48%]  (Sampling) 
+Chain 1 Iteration: 2500 / 5000 [ 50%]  (Sampling) 
+Chain 1 Iteration: 2600 / 5000 [ 52%]  (Sampling) 
+Chain 1 Iteration: 2700 / 5000 [ 54%]  (Sampling) 
+Chain 1 Iteration: 2800 / 5000 [ 56%]  (Sampling) 
+Chain 1 Iteration: 2900 / 5000 [ 58%]  (Sampling) 
+Chain 1 Iteration: 3000 / 5000 [ 60%]  (Sampling) 
+Chain 1 Iteration: 3100 / 5000 [ 62%]  (Sampling) 
+Chain 1 Iteration: 3200 / 5000 [ 64%]  (Sampling) 
+Chain 1 Iteration: 3300 / 5000 [ 66%]  (Sampling) 
+Chain 1 Iteration: 3400 / 5000 [ 68%]  (Sampling) 
+Chain 1 Iteration: 3500 / 5000 [ 70%]  (Sampling) 
+Chain 1 Iteration: 3600 / 5000 [ 72%]  (Sampling) 
+Chain 1 Iteration: 3700 / 5000 [ 74%]  (Sampling) 
+Chain 1 Iteration: 3800 / 5000 [ 76%]  (Sampling) 
+Chain 1 Iteration: 3900 / 5000 [ 78%]  (Sampling) 
+Chain 1 Iteration: 4000 / 5000 [ 80%]  (Sampling) 
+Chain 1 Iteration: 4100 / 5000 [ 82%]  (Sampling) 
+Chain 1 Iteration: 4200 / 5000 [ 84%]  (Sampling) 
+Chain 1 Iteration: 4300 / 5000 [ 86%]  (Sampling) 
+Chain 1 Iteration: 4400 / 5000 [ 88%]  (Sampling) 
+Chain 1 Iteration: 4500 / 5000 [ 90%]  (Sampling) 
+Chain 1 Iteration: 4600 / 5000 [ 92%]  (Sampling) 
+Chain 1 Iteration: 4700 / 5000 [ 94%]  (Sampling) 
+Chain 1 Iteration: 4800 / 5000 [ 96%]  (Sampling) 
+Chain 1 Iteration: 4900 / 5000 [ 98%]  (Sampling) 
+Chain 1 Iteration: 5000 / 5000 [100%]  (Sampling) 
+Chain 1 finished in 0.2 seconds.
+Chain 2 Iteration:    1 / 5000 [  0%]  (Warmup) 
+Chain 2 Iteration:  100 / 5000 [  2%]  (Warmup) 
+Chain 2 Iteration:  200 / 5000 [  4%]  (Warmup) 
+Chain 2 Iteration:  300 / 5000 [  6%]  (Warmup) 
+Chain 2 Iteration:  400 / 5000 [  8%]  (Warmup) 
+Chain 2 Iteration:  500 / 5000 [ 10%]  (Warmup) 
+Chain 2 Iteration:  600 / 5000 [ 12%]  (Warmup) 
+Chain 2 Iteration:  700 / 5000 [ 14%]  (Warmup) 
+Chain 2 Iteration:  800 / 5000 [ 16%]  (Warmup) 
+Chain 2 Iteration:  900 / 5000 [ 18%]  (Warmup) 
+Chain 2 Iteration: 1000 / 5000 [ 20%]  (Warmup) 
+Chain 2 Iteration: 1001 / 5000 [ 20%]  (Sampling) 
+Chain 2 Iteration: 1100 / 5000 [ 22%]  (Sampling) 
+Chain 2 Iteration: 1200 / 5000 [ 24%]  (Sampling) 
+Chain 2 Iteration: 1300 / 5000 [ 26%]  (Sampling) 
+Chain 2 Iteration: 1400 / 5000 [ 28%]  (Sampling) 
+Chain 2 Iteration: 1500 / 5000 [ 30%]  (Sampling) 
+Chain 2 Iteration: 1600 / 5000 [ 32%]  (Sampling) 
+Chain 2 Iteration: 1700 / 5000 [ 34%]  (Sampling) 
+Chain 2 Iteration: 1800 / 5000 [ 36%]  (Sampling) 
+Chain 2 Iteration: 1900 / 5000 [ 38%]  (Sampling) 
+Chain 2 Iteration: 2000 / 5000 [ 40%]  (Sampling) 
+Chain 2 Iteration: 2100 / 5000 [ 42%]  (Sampling) 
+Chain 2 Iteration: 2200 / 5000 [ 44%]  (Sampling) 
+Chain 2 Iteration: 2300 / 5000 [ 46%]  (Sampling) 
+Chain 2 Iteration: 2400 / 5000 [ 48%]  (Sampling) 
+Chain 2 Iteration: 2500 / 5000 [ 50%]  (Sampling) 
+Chain 2 Iteration: 2600 / 5000 [ 52%]  (Sampling) 
+Chain 2 Iteration: 2700 / 5000 [ 54%]  (Sampling) 
+Chain 2 Iteration: 2800 / 5000 [ 56%]  (Sampling) 
+Chain 2 Iteration: 2900 / 5000 [ 58%]  (Sampling) 
+Chain 2 Iteration: 3000 / 5000 [ 60%]  (Sampling) 
+Chain 2 Iteration: 3100 / 5000 [ 62%]  (Sampling) 
+Chain 2 Iteration: 3200 / 5000 [ 64%]  (Sampling) 
+Chain 2 Iteration: 3300 / 5000 [ 66%]  (Sampling) 
+Chain 2 Iteration: 3400 / 5000 [ 68%]  (Sampling) 
+Chain 2 Iteration: 3500 / 5000 [ 70%]  (Sampling) 
+Chain 2 Iteration: 3600 / 5000 [ 72%]  (Sampling) 
+Chain 2 Iteration: 3700 / 5000 [ 74%]  (Sampling) 
+Chain 2 Iteration: 3800 / 5000 [ 76%]  (Sampling) 
+Chain 2 Iteration: 3900 / 5000 [ 78%]  (Sampling) 
+Chain 2 Iteration: 4000 / 5000 [ 80%]  (Sampling) 
+Chain 2 Iteration: 4100 / 5000 [ 82%]  (Sampling) 
+Chain 2 Iteration: 4200 / 5000 [ 84%]  (Sampling) 
+Chain 2 Iteration: 4300 / 5000 [ 86%]  (Sampling) 
+Chain 2 Iteration: 4400 / 5000 [ 88%]  (Sampling) 
+Chain 2 Iteration: 4500 / 5000 [ 90%]  (Sampling) 
+Chain 2 Iteration: 4600 / 5000 [ 92%]  (Sampling) 
+Chain 2 Iteration: 4700 / 5000 [ 94%]  (Sampling) 
+Chain 2 Iteration: 4800 / 5000 [ 96%]  (Sampling) 
+Chain 2 Iteration: 4900 / 5000 [ 98%]  (Sampling) 
+Chain 2 Iteration: 5000 / 5000 [100%]  (Sampling) 
+Chain 2 finished in 0.2 seconds.
+Chain 3 Iteration:    1 / 5000 [  0%]  (Warmup) 
+Chain 3 Iteration:  100 / 5000 [  2%]  (Warmup) 
+Chain 3 Iteration:  200 / 5000 [  4%]  (Warmup) 
+Chain 3 Iteration:  300 / 5000 [  6%]  (Warmup) 
+Chain 3 Iteration:  400 / 5000 [  8%]  (Warmup) 
+Chain 3 Iteration:  500 / 5000 [ 10%]  (Warmup) 
+Chain 3 Iteration:  600 / 5000 [ 12%]  (Warmup) 
+Chain 3 Iteration:  700 / 5000 [ 14%]  (Warmup) 
+Chain 3 Iteration:  800 / 5000 [ 16%]  (Warmup) 
+Chain 3 Iteration:  900 / 5000 [ 18%]  (Warmup) 
+Chain 3 Iteration: 1000 / 5000 [ 20%]  (Warmup) 
+Chain 3 Iteration: 1001 / 5000 [ 20%]  (Sampling) 
+Chain 3 Iteration: 1100 / 5000 [ 22%]  (Sampling) 
+Chain 3 Iteration: 1200 / 5000 [ 24%]  (Sampling) 
+Chain 3 Iteration: 1300 / 5000 [ 26%]  (Sampling) 
+Chain 3 Iteration: 1400 / 5000 [ 28%]  (Sampling) 
+Chain 3 Iteration: 1500 / 5000 [ 30%]  (Sampling) 
+Chain 3 Iteration: 1600 / 5000 [ 32%]  (Sampling) 
+Chain 3 Iteration: 1700 / 5000 [ 34%]  (Sampling) 
+Chain 3 Iteration: 1800 / 5000 [ 36%]  (Sampling) 
+Chain 3 Iteration: 1900 / 5000 [ 38%]  (Sampling) 
+Chain 3 Iteration: 2000 / 5000 [ 40%]  (Sampling) 
+Chain 3 Iteration: 2100 / 5000 [ 42%]  (Sampling) 
+Chain 3 Iteration: 2200 / 5000 [ 44%]  (Sampling) 
+Chain 3 Iteration: 2300 / 5000 [ 46%]  (Sampling) 
+Chain 3 Iteration: 2400 / 5000 [ 48%]  (Sampling) 
+Chain 3 Iteration: 2500 / 5000 [ 50%]  (Sampling) 
+Chain 3 Iteration: 2600 / 5000 [ 52%]  (Sampling) 
+Chain 3 Iteration: 2700 / 5000 [ 54%]  (Sampling) 
+Chain 3 Iteration: 2800 / 5000 [ 56%]  (Sampling) 
+Chain 3 Iteration: 2900 / 5000 [ 58%]  (Sampling) 
+Chain 3 Iteration: 3000 / 5000 [ 60%]  (Sampling) 
+Chain 3 Iteration: 3100 / 5000 [ 62%]  (Sampling) 
+Chain 3 Iteration: 3200 / 5000 [ 64%]  (Sampling) 
+Chain 3 Iteration: 3300 / 5000 [ 66%]  (Sampling) 
+Chain 3 Iteration: 3400 / 5000 [ 68%]  (Sampling) 
+Chain 3 Iteration: 3500 / 5000 [ 70%]  (Sampling) 
+Chain 3 Iteration: 3600 / 5000 [ 72%]  (Sampling) 
+Chain 3 Iteration: 3700 / 5000 [ 74%]  (Sampling) 
+Chain 3 Iteration: 3800 / 5000 [ 76%]  (Sampling) 
+Chain 3 Iteration: 3900 / 5000 [ 78%]  (Sampling) 
+Chain 3 Iteration: 4000 / 5000 [ 80%]  (Sampling) 
+Chain 3 Iteration: 4100 / 5000 [ 82%]  (Sampling) 
+Chain 3 Iteration: 4200 / 5000 [ 84%]  (Sampling) 
+Chain 3 Iteration: 4300 / 5000 [ 86%]  (Sampling) 
+Chain 3 Iteration: 4400 / 5000 [ 88%]  (Sampling) 
+Chain 3 Iteration: 4500 / 5000 [ 90%]  (Sampling) 
+Chain 3 Iteration: 4600 / 5000 [ 92%]  (Sampling) 
+Chain 3 Iteration: 4700 / 5000 [ 94%]  (Sampling) 
+Chain 3 Iteration: 4800 / 5000 [ 96%]  (Sampling) 
+Chain 3 Iteration: 4900 / 5000 [ 98%]  (Sampling) 
+Chain 3 Iteration: 5000 / 5000 [100%]  (Sampling) 
+Chain 3 finished in 0.1 seconds.
+Chain 4 Iteration:    1 / 5000 [  0%]  (Warmup) 
+Chain 4 Iteration:  100 / 5000 [  2%]  (Warmup) 
+Chain 4 Iteration:  200 / 5000 [  4%]  (Warmup) 
+Chain 4 Iteration:  300 / 5000 [  6%]  (Warmup) 
+Chain 4 Iteration:  400 / 5000 [  8%]  (Warmup) 
+Chain 4 Iteration:  500 / 5000 [ 10%]  (Warmup) 
+Chain 4 Iteration:  600 / 5000 [ 12%]  (Warmup) 
+Chain 4 Iteration:  700 / 5000 [ 14%]  (Warmup) 
+Chain 4 Iteration:  800 / 5000 [ 16%]  (Warmup) 
+Chain 4 Iteration:  900 / 5000 [ 18%]  (Warmup) 
+Chain 4 Iteration: 1000 / 5000 [ 20%]  (Warmup) 
+Chain 4 Iteration: 1001 / 5000 [ 20%]  (Sampling) 
+Chain 4 Iteration: 1100 / 5000 [ 22%]  (Sampling) 
+Chain 4 Iteration: 1200 / 5000 [ 24%]  (Sampling) 
+Chain 4 Iteration: 1300 / 5000 [ 26%]  (Sampling) 
+Chain 4 Iteration: 1400 / 5000 [ 28%]  (Sampling) 
+Chain 4 Iteration: 1500 / 5000 [ 30%]  (Sampling) 
+Chain 4 Iteration: 1600 / 5000 [ 32%]  (Sampling) 
+Chain 4 Iteration: 1700 / 5000 [ 34%]  (Sampling) 
+Chain 4 Iteration: 1800 / 5000 [ 36%]  (Sampling) 
+Chain 4 Iteration: 1900 / 5000 [ 38%]  (Sampling) 
+Chain 4 Iteration: 2000 / 5000 [ 40%]  (Sampling) 
+Chain 4 Iteration: 2100 / 5000 [ 42%]  (Sampling) 
+Chain 4 Iteration: 2200 / 5000 [ 44%]  (Sampling) 
+Chain 4 Iteration: 2300 / 5000 [ 46%]  (Sampling) 
+Chain 4 Iteration: 2400 / 5000 [ 48%]  (Sampling) 
+Chain 4 Iteration: 2500 / 5000 [ 50%]  (Sampling) 
+Chain 4 Iteration: 2600 / 5000 [ 52%]  (Sampling) 
+Chain 4 Iteration: 2700 / 5000 [ 54%]  (Sampling) 
+Chain 4 Iteration: 2800 / 5000 [ 56%]  (Sampling) 
+Chain 4 Iteration: 2900 / 5000 [ 58%]  (Sampling) 
+Chain 4 Iteration: 3000 / 5000 [ 60%]  (Sampling) 
+Chain 4 Iteration: 3100 / 5000 [ 62%]  (Sampling) 
+Chain 4 Iteration: 3200 / 5000 [ 64%]  (Sampling) 
+Chain 4 Iteration: 3300 / 5000 [ 66%]  (Sampling) 
+Chain 4 Iteration: 3400 / 5000 [ 68%]  (Sampling) 
+Chain 4 Iteration: 3500 / 5000 [ 70%]  (Sampling) 
+Chain 4 Iteration: 3600 / 5000 [ 72%]  (Sampling) 
+Chain 4 Iteration: 3700 / 5000 [ 74%]  (Sampling) 
+Chain 4 Iteration: 3800 / 5000 [ 76%]  (Sampling) 
+Chain 4 Iteration: 3900 / 5000 [ 78%]  (Sampling) 
+Chain 4 Iteration: 4000 / 5000 [ 80%]  (Sampling) 
+Chain 4 Iteration: 4100 / 5000 [ 82%]  (Sampling) 
+Chain 4 Iteration: 4200 / 5000 [ 84%]  (Sampling) 
+Chain 4 Iteration: 4300 / 5000 [ 86%]  (Sampling) 
+Chain 4 Iteration: 4400 / 5000 [ 88%]  (Sampling) 
+Chain 4 Iteration: 4500 / 5000 [ 90%]  (Sampling) 
+Chain 4 Iteration: 4600 / 5000 [ 92%]  (Sampling) 
+Chain 4 Iteration: 4700 / 5000 [ 94%]  (Sampling) 
+Chain 4 Iteration: 4800 / 5000 [ 96%]  (Sampling) 
+Chain 4 Iteration: 4900 / 5000 [ 98%]  (Sampling) 
+Chain 4 Iteration: 5000 / 5000 [100%]  (Sampling) 
+Chain 4 finished in 0.2 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 0.2 seconds.
+Total execution time: 1.8 seconds.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: rstan</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: StanHeaders</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+rstan version 2.32.7 (Stan version 2.32.2)</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores()).
+To avoid recompilation of unchanged Stan programs, we recommend calling
+rstan_options(auto_write = TRUE)
+For within-chain threading using `reduce_sum()` or `map_rect()` Stan functions,
+change `threads_per_chain` option:
+rstan_options(threads_per_chain = 1)</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'rstan'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:tidyr':
+
+    extract</code></pre>
+</div>
+</div>
+<p>Un résumé des résultats du modèle est présenté ci-dessous. La première chose que vous pouvez observer est que les estimations des paramètres de ce modèle sont congruentes avec le modèle fréquentiste (cf.&nbsp;cours “motivations.ipynb”).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Résumé des résutlats du modèle</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(bglm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: gaussian 
+  Links: mu = identity 
+Formula: anxiety ~ socioecon 
+   Data: simulated_data (Number of observations: 120) 
+  Draws: 4 chains, each with iter = 5000; warmup = 1000; thin = 1;
+         total post-warmup draws = 16000
+
+Regression Coefficients:
+          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+Intercept    62.62      2.04    58.60    66.57 1.00    12798     9063
+socioecon    -1.48      0.18    -1.84    -1.12 1.00    12599     9786
+
+Further Distributional Parameters:
+      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sigma    11.44      0.75    10.09    13.02 1.00    12285     9947
+
+Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+</div>
+<p>Pour qu’un modèle bayésien produise des estimations fiables, il est essentiel que les chaînes MCMC aient convergé. Cela signifie que, malgré leurs points de départ différents, les chaînes ont toutes exploré la même région de l’espace des paramètres et échantillonnent à partir de la même distribution a posteriori. Si ce n’est pas le cas, les résultats risquent d’être biaisés ou incohérents.</p>
+<p>Pour évaluer cette convergence, on utilise plusieurs outils :</p>
+<ol type="1">
+<li><p>Le statistique <code>Rhat</code> (dans le tableau ci-dessus) compare la variance entre les chaînes à la variance à l’intérieur de chaque chaîne. Une valeur proche de 1 (généralement &lt; 1.01) indique que les chaînes ont convergé.</p></li>
+<li><p>Les statistiques <code>Bulk_ESS</code> et <code>Tail_ESS</code> (dans le tableau ci-dessus) se refèrent à l’<em>effective sample size</em> (ESS) ou taille d’échantillon effective. Cela indique combien d’échantillons indépendants l’algorithme a effectivement généré, après correction pour l’autocorrélation. Même si nous avons 20 000 échantillons (4 chaînes × 5000 itérations - 1000 warm-ups), l’ESS peut être beaucoup plus faible si nos chaînes sont fortement autocorrélées. Plus l’ESS est élevé, moins les échantillons sont autocorrélés et plus l’estimation est précise. Plus l’ESS est faible, plus l’autocorrélation entre les échantillons est forte, et moins l’inférence est fiable. <code>Bulk_ESS</code> correspond au nombre effectif d’échantillons pour l’estimation de la moyenne du paramètre, tandis que <code>Tail_ESS</code> correspond au nombre effectif d’échantillons pour l’estimation des queues (extrêmes) de la distribution. Généralement, on cherche à ce que les valeurs de ces deux paramètres soient entre 400 et 1000.</p></li>
+<li><p>Nous pouvons examiner la densité marginale estimée pour chaque chaîne, comme dans le graphique ci-dessous :</p></li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>posterior_array <span class="ot">&lt;-</span> <span class="fu">as.array</span>(bglm)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mcmc_dens_overlay</span>(posterior_array, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_socioecon"</span>, <span class="st">"b_Intercept"</span>, <span class="st">"sigma"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<ol start="4" type="1">
+<li>Nous pouvons aussi examiner l’autocorrélation des échantillons, comme dans le graphique ci-dessous. Ce graphique montre à quel point les valeurs successives sont corrélées entre elles à différents lags (décalages). Une faible autocorrélation est souhaitable, car elle signifie que les chaînes explorent efficacement l’espace des paramètres.</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mcmc_acf</span>(posterior_array, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_socioecon"</span>, <span class="st">"b_Intercept"</span>, <span class="st">"sigma"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<ol start="5" type="1">
+<li>Le traceplot ci-dessous permet de visualiser l’évolution des échantillons d’un paramètre à travers les itérations, pour chaque chaîne. Si les chaînes semblent “mélangées”, sans tendance ou dérive, c’est un bon signe de convergence.</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Graphiques permettant de estimer la fiabilité des résultats</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(bglm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Pour avoir une idée de la précision des prédictions du modèle, nous pouvons aussi utiliser la fonction <code>pp_check</code>. Dans le graphique ci-dessous nous pouvons voir la distribution des données observées (<span class="math inline">\(y\)</span>) et les distributions des données simulées à partir du modèle ajusté <span class="math inline">\(\hat{y}\)</span>. Ces prédictions sont multiples (10 dans le cas du graphique ci-dessous), car elles sont générées en tirant des valeurs des paramètres au hasard (<span class="math inline">\(\beta_0\)</span>, <span class="math inline">\(\beta_1\)</span>, <span class="math inline">\(\sigma\)</span>) dans les distributions a posteriori de ces paramètres.</p>
+<p>Le graphique ci-dessous montre un très bon ajustement du modèle aux données observées :</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajustement du modèle aux données observées</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pp_check</span>(bglm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Using 10 posterior draws for ppc type 'dens_overlay' by default.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Finalement, nous pouvons représenter graphiquement les résultats du modèle de manière plus classique avec les droite de regressions estimées (nous en avons générées 100 ici) comme suit :</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>simulated_data <span class="sc">%&gt;%</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data_grid</span>(<span class="at">socioecon =</span> <span class="fu">seq_range</span>(socioecon, <span class="at">n =</span> <span class="dv">100</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_fitted_draws</span>(bglm, <span class="at">n =</span> <span class="dv">100</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> socioecon, <span class="at">y =</span> .value)) <span class="sc">+</span></span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> .draw), <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">color =</span> <span class="st">"skyblue"</span>) <span class="sc">+</span></span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> simulated_data, <span class="fu">aes</span>(<span class="at">y =</span> anxiety), <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">shape =</span> <span class="dv">21</span>) <span class="sc">+</span></span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">""</span>,</span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Statut socio-economique (x)"</span>,</span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Score STAI-State d'anxiété (y)"</span>) <span class="sc">+</span></span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_regression_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
