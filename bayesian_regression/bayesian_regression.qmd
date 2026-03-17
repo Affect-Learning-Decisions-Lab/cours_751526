@@ -280,9 +280,9 @@ pp_check(bglm)
 Finalement, nous pouvons représenter graphiquement les résultats du modèle de manière plus classique avec les droite de regressions estimées (nous en avons générées 100 ici) comme suit : 
 
 ```{r}
-simulated_data %>%
-  data_grid(socioecon = seq_range(socioecon, n = 100)) %>%
-  add_fitted_draws(bglm, n = 100) %>%
+simulated_data |>
+  data_grid(socioecon = seq_range(socioecon, n = 100)) |>
+  add_fitted_draws(bglm, n = 100) |>
   ggplot(aes(x = socioecon, y = .value)) +
   geom_line(aes(group = .draw), alpha = 0.4, color = "skyblue") +
   geom_point(data = simulated_data, aes(y = anxiety), color = "black", fill = "black", shape = 21) +
